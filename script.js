@@ -21,9 +21,6 @@ jQuery(document).ready(function($){
             .append($('<label for="' + 2020 + '" >' + 2020 + '</label>'))*/
       });
 
-      $("#aliceblogs-filter-year>input[type='radio']").on('change', function() {
-        alert("OK"); 
-     });
     $('#aliceblogs-filter-year').change( function() {        
         let year = $('#aliceblogs-filter-year').find(":checked").text();
         console.log("year")        
