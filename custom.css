@@ -1,3 +1,10 @@
-#alice-button {
- color: red;   
+#aliceblogs-filter-box {
+    display: flex;
+    flex-direction: row;
+    margin-left: 1em;
+}
+
+.aliceblogs-filter-cell {
+    border: 2px solid black;
+    padding: 1em;
 }
