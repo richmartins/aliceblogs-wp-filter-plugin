@@ -1,5 +1,5 @@
 jQuery(document).ready(function($){
-    
+    get_posts();
     function get_posts(categories = null){
       $.ajax({
             url: url,
@@ -11,11 +11,17 @@ jQuery(document).ready(function($){
       }).done(function (results) {
             $('#aliceblogs-carddeck').empty()
             let posts = JSON.parse(results)
+            html = ''
             for (index in posts) {
-                $('#aliceblogs-carddeck')
-                .append($('<p>' + posts[index].title + '<p>'))
-                .append($('<br>'))
+              html += '<div class="aliceblogs-card">'
+              html += '<a href="' + posts[index].url + '">'
+              html += '<div class="hvrbox">'
+              html += '<img alt="thumbail-'+ +'"class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail
+              html += '<div class="hvrbox-layer_top">'
+              html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
+              html += '</div></div></div></a></div>'
             }
+            $('#aliceblogs-carddeck').html(html) 
       });
     }
 
@@ -35,7 +41,7 @@ jQuery(document).ready(function($){
         }
     });
 
-    $('#aliceblogs-filter-year').change( function() {        
+    $('#aliceblogs-filter-year').change( function() {
         let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id');
         $.ajax({
           url: url,

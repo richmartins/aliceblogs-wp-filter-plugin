@@ -23,17 +23,17 @@ class Aliceblogs {
     }
 
     public function get_posts(){
-        //$categories = isset($_POST['categories']) ? $_POST['categories'] : '';
+        $categories = isset($_POST['categories']) ? $_POST['categories'] : '';
         $args = [
             'numberposts' => -1,
-            'category' => $_POST['categories']
+            'category'    => $categories
         ];
         $posts = [];
         
         foreach(get_posts($args) as $post){
             $posts[$post->ID] = [
-                'title' => $post->post_title,
-                'url' => $post->guid,
+                'title'     => $post->post_title,
+                'url'       => $post->guid,
                 'thumbnail' => get_the_post_thumbnail($post->ID)
             ];
         }
@@ -46,22 +46,21 @@ class Aliceblogs {
             'taxonomy' => 'category'
         ];
         $args = [
-            'parent' => 0,
+            'parent'     => 0,
             'hide_empty' => false,
-            'exclude'=> 1
+            'exclude'    => 1
         ];
         $terms = get_terms($taxonomies, $args);
         echo json_encode($terms);
         die();
     }
     public function get_degrees(){
-
         if (isset($_POST['year_id'])) {
             $taxonomies = [ 
                 'taxonomy' => 'category'
             ];
             $args = [
-                'parent' => $_POST['year_id'],
+                'parent'     => $_POST['year_id'],
                 'hide_empty' => false
             ];
             $terms = get_terms($taxonomies, $args);
