@@ -25,17 +25,32 @@ class Aliceblogs {
     }
 
     public function get_posts(){
-        $categories = isset($_POST['categories']) ? $_POST['categories'] : '';
-        if (is_array($_POST['categories'])) {
+        $categories = $_POST['categories'];
+        if (is_array($categories)) {
             $categories = implode(",", $categories);
         }
+
+        // Get all users from selected studios
+        $users = [];
+        foreach($_POST['roles'] as $role) {
+            $users_belongs_to_role = get_users(['role' => $role]);
+
+            foreach($users_belongs_to_role as $user) {
+                array_push($users, $user->ID);
+            }
+        }
+
+        // Create WP Query to filter posts authors & categories
         $args = [
-            'numberposts' => -1,
-            'category'    => $categories
+            'posts_per_page' => -1,
+            'post_type' => 'post',
+            'cat' => [$categories],
+            'post_status' => 'publish',
+            'author' => $users = implode(",", $users)
         ];
-        $posts = [];
-        
-        foreach(get_posts($args) as $post){
+        $query = new WP_Query($args);
+
+        foreach($query->posts as $post){
             $posts[$post->ID] = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,

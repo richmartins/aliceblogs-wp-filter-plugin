@@ -1,13 +1,14 @@
 jQuery(document).ready(function($){
     get_posts();
 
-    function get_posts(categories = null){
+    function get_posts(categories = null, studios = null){
       $.ajax({
             url: url,
             type: "POST",
             data: {
                 'action': 'get_posts',
-                'categories': categories
+                'categories': categories,
+                'roles': studios
             },
             beforeSend: function() {
               loader()
@@ -120,11 +121,47 @@ jQuery(document).ready(function($){
             let studios = JSON.parse(results)
             for (index in studios) {
                 $('#aliceblogs-filter-studios')
-                .append($('<input type="checkbox" id="' + studios[index] + '" name="studios" value="' + studios[index] + '">'))
-                .append($('<label for="' + studios[index] + '" >' + studios[index] + '</label>'))
+                .append($('<input type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
+                .append($('<label for="' + index + '" >' + studios[index] + '</label>'))
                 .append($('<br>'))
             }
         });
       }
-  })
+    })
+
+    $('#aliceblogs-filter-studios').change(function () {
+      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
+      let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
+        return $(this).attr('id');
+      }).get();
+      let studios_ids = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function(){
+        return $(this).attr('id');
+      }).get();
+
+      if (studios_ids.length === 0) {
+        get_posts(elements_ids)
+        //$('#aliceblogs-filter-studios').empty()
+      } else {
+        get_posts(elements_ids, studios_ids)
+        /*
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: {
+            'action': 'get_studios',
+            'elements_ids': elements_ids
+          }
+        }).done(function(results) {
+          $('#aliceblogs-filter-studios').empty()
+            let studios = JSON.parse(results)
+            for (index in studios) {
+                $('#aliceblogs-filter-studios')
+                .append($('<input type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
+                .append($('<label for="' + index + '" >' + studios[index] + '</label>'))
+                .append($('<br>'))
+            }
+        });
+        */
+      }
+    })
 });
