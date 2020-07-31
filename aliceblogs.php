@@ -24,6 +24,9 @@ class Aliceblogs {
 
     public function get_posts(){
         $categories = isset($_POST['categories']) ? $_POST['categories'] : '';
+        if (is_array($_POST['categories'])) {
+            $categories = implode(",", $categories);
+        }
         $args = [
             'numberposts' => -1,
             'category'    => $categories
@@ -34,7 +37,7 @@ class Aliceblogs {
             $posts[$post->ID] = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
-                'thumbnail' => get_the_post_thumbnail($post->ID)
+                'thumbnail' => get_the_post_thumbnail_url($post->ID)
             ];
         }
         echo json_encode($posts);

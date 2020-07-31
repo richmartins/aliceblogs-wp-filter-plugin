@@ -1,5 +1,6 @@
 jQuery(document).ready(function($){
     get_posts();
+
     function get_posts(categories = null){
       $.ajax({
             url: url,
@@ -7,6 +8,9 @@ jQuery(document).ready(function($){
             data: {
                 'action': 'get_posts',
                 'categories': categories
+            },
+            beforeSend: function() {
+              loader()
             }
       }).done(function (results) {
             $('#aliceblogs-carddeck').empty()
@@ -16,13 +20,19 @@ jQuery(document).ready(function($){
               html += '<div class="aliceblogs-card">'
               html += '<a href="' + posts[index].url + '">'
               html += '<div class="hvrbox">'
-              html += '<img alt="thumbail-'+ +'"class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail
+              html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
               html += '<div class="hvrbox-layer_top">'
               html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
               html += '</div></div></div></a></div>'
             }
+            
             $('#aliceblogs-carddeck').html(html) 
       });
+    }
+
+    function loader() {
+      console.log("loader")
+      $('#aliceblogs-carddeck').html('<div id="container-loader"><div class="loader"></div></div>')
     }
 
     $.ajax({
@@ -51,10 +61,9 @@ jQuery(document).ready(function($){
             'year_id': year_id
           }
         }).done(function(results) {
-            console.log(year_id)
             get_posts(year_id);
             $('#aliceblogs-filter-degrees').empty()
-            $('#aliceblogs-filter-categories').empty()
+            $('#aliceblogs-filter-elements').empty()
             let degrees = JSON.parse(results)
             for (index in degrees) {
                 $('#aliceblogs-filter-degrees')
@@ -75,14 +84,52 @@ jQuery(document).ready(function($){
             'degree_id': degree_id
           }
         }).done(function(results) {
-            $('#aliceblogs-filter-categories').empty()
-            let categories = JSON.parse(results)
-            for (index in categories) {
-                $('#aliceblogs-filter-categories')
-                .append($('<input type="checkbox" id="' + categories[index].term_taxonomy_id + '" name="categories" value="' + categories[index].name + '">'))
-                .append($('<label for="' + categories[index].term_taxonomy_id + '" >' + categories[index].name + '</label>'))
+            get_posts(degree_id);
+            $('#aliceblogs-filter-elements').empty()
+            let elements = JSON.parse(results)
+            for (index in elements) {
+                $('#aliceblogs-filter-elements')
+                .append($('<input type="checkbox" id="' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
+                .append($('<label for="' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
                 .append($('<br>'))
             }
         });
     })
+
+    $('#aliceblogs-filter-elements').change(function () {
+      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
+      let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
+        return $(this).attr('id');
+      }).get();
+      if (elements_ids.length === 0) {
+        get_posts(degree_id)
+      } else {
+        get_posts(elements_ids)
+      }
+      
+      /*
+      
+      let elements_ids = $('#aliceblogs-filter-elements>input[name="elements"]:checked').attr('id');
+      console.log(elements_ids)
+      
+      $.ajax({
+        url: url,
+        type: "POST",
+        data: {
+          'action': 'get_categories',
+          'degree_id': degree_id
+        }
+      }).done(function(results) {
+          get_posts(degree_id);
+          $('#aliceblogs-filter-categories').empty()
+          let categories = JSON.parse(results)
+          for (index in categories) {
+              $('#aliceblogs-filter-categories')
+              .append($('<input type="checkbox" id="' + categories[index].term_taxonomy_id + '" name="categories" value="' + categories[index].name + '">'))
+              .append($('<label for="' + categories[index].term_taxonomy_id + '" >' + categories[index].name + '</label>'))
+              .append($('<br>'))
+          }
+      });
+      */
+  })
 });

@@ -82,3 +82,33 @@
 .hvrbox.active .hvrbox-text_mobile {
     display: block;
 }
+
+/***** LOADER *****/
+
+#container-loader {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+.loader {
+    width:45px;
+    height:45px;
+    display:inline-block;
+    padding:0px;
+    border-radius:100%;
+    border:5px solid;
+    border-top-color:black;
+    border-bottom-color:rgba(255,255,255, 0.3);
+    border-left-color: black;
+    border-right-color:rgba(255,255,255, 0.3);
+    -webkit-animation: loader 1s ease-in-out infinite;
+    animation: loader 1s ease-in-out infinite;
+ }
+ @keyframes loader {
+    from {transform: rotate(0deg);}
+    to {transform: rotate(360deg);}
+ }
+ @-webkit-keyframes loader {
+    from {-webkit-transform: rotate(0deg);}
+    to {-webkit-transform: rotate(360deg);}
+ }
