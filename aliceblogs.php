@@ -16,10 +16,12 @@ class Aliceblogs {
         add_action('wp_ajax_get_years', [$this, 'get_years']);
         add_action('wp_ajax_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_get_posts', [$this, 'get_posts']);
+        add_action('wp_ajax_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_nopriv_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_nopriv_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
+        add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
     }
 
     public function get_posts(){
@@ -57,6 +59,7 @@ class Aliceblogs {
         echo json_encode($terms);
         die();
     }
+
     public function get_degrees(){
         if (isset($_POST['year_id'])) {
             $taxonomies = [ 
@@ -71,6 +74,7 @@ class Aliceblogs {
         }
         die();
     }
+
     public function get_categories() {
         if(isset($_POST['degree_id'])){
             $taxonomies = [ 
@@ -83,6 +87,44 @@ class Aliceblogs {
             ];
             $terms = get_terms($taxonomies, $args);
             echo json_encode($terms);
+        }
+        die();
+    }
+
+    public function get_studios() {
+        if(isset($_POST['elements_ids'])){
+            if (is_array($_POST['elements_ids'])) {
+                $elements_ids = implode(",", $_POST['elements_ids']);
+            }
+            $args = [
+                'numberposts' => -1,
+                'category'    => $elements_ids
+            ];
+            
+            $roles = [];
+            foreach(get_posts($args) as $post){
+                global $wp_roles;
+
+                $author_id = get_post_field('post_author', $post->ID);
+                $role_slug = get_role(get_userdata($author_id)->roles[0])->name;
+
+                // Exclude the default WP roles to prevent them from appearing in the filter. 
+                $default_wp_roles = [
+                    'administrator',
+                    'editor',
+                    'author',
+                    'contributor',
+                    'subscriber'
+                ];
+
+                if (in_array($role_slug, $default_wp_roles)) {
+                    continue;
+                }
+
+                $role_name = $wp_roles->role_names[$role_slug];
+                $roles[$role_slug] = $role_name;
+            }
+            echo json_encode($roles);
         }
         die();
     }

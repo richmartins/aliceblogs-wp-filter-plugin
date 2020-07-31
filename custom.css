@@ -12,12 +12,17 @@
 #aliceblogs-carddeck {
     display: flex!important;
     flex-direction: row!important;
+    flex-wrap: wrap;
 }
 
 .aliceblogs-card {
     display: block;
     margin: 0 1.5em;
     align-items: center;
+}
+.hvrbox > img.hvrbox-layer_bottom {
+    max-width: 350px!important;
+    height: auto!important;
 }
 
 /***** HOVER BOX FROM : http://css-workshop.com/hover-box-text-over-images-on-hover-and-more/ *****/

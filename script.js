@@ -31,7 +31,6 @@ jQuery(document).ready(function($){
     }
 
     function loader() {
-      console.log("loader")
       $('#aliceblogs-carddeck').html('<div id="container-loader"><div class="loader"></div></div>')
     }
 
@@ -64,6 +63,7 @@ jQuery(document).ready(function($){
             get_posts(year_id);
             $('#aliceblogs-filter-degrees').empty()
             $('#aliceblogs-filter-elements').empty()
+            $('#aliceblogs-filter-studios').empty()
             let degrees = JSON.parse(results)
             for (index in degrees) {
                 $('#aliceblogs-filter-degrees')
@@ -86,6 +86,7 @@ jQuery(document).ready(function($){
         }).done(function(results) {
             get_posts(degree_id);
             $('#aliceblogs-filter-elements').empty()
+            $('#aliceblogs-filter-studios').empty()
             let elements = JSON.parse(results)
             for (index in elements) {
                 $('#aliceblogs-filter-elements')
@@ -103,33 +104,27 @@ jQuery(document).ready(function($){
       }).get();
       if (elements_ids.length === 0) {
         get_posts(degree_id)
+        $('#aliceblogs-filter-studios').empty()
       } else {
         get_posts(elements_ids)
-      }
-      
-      /*
-      
-      let elements_ids = $('#aliceblogs-filter-elements>input[name="elements"]:checked').attr('id');
-      console.log(elements_ids)
-      
-      $.ajax({
-        url: url,
-        type: "POST",
-        data: {
-          'action': 'get_categories',
-          'degree_id': degree_id
-        }
-      }).done(function(results) {
-          get_posts(degree_id);
-          $('#aliceblogs-filter-categories').empty()
-          let categories = JSON.parse(results)
-          for (index in categories) {
-              $('#aliceblogs-filter-categories')
-              .append($('<input type="checkbox" id="' + categories[index].term_taxonomy_id + '" name="categories" value="' + categories[index].name + '">'))
-              .append($('<label for="' + categories[index].term_taxonomy_id + '" >' + categories[index].name + '</label>'))
-              .append($('<br>'))
+        
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: {
+            'action': 'get_studios',
+            'elements_ids': elements_ids
           }
-      });
-      */
+        }).done(function(results) {
+          $('#aliceblogs-filter-studios').empty()
+            let studios = JSON.parse(results)
+            for (index in studios) {
+                $('#aliceblogs-filter-studios')
+                .append($('<input type="checkbox" id="' + studios[index] + '" name="studios" value="' + studios[index] + '">'))
+                .append($('<label for="' + studios[index] + '" >' + studios[index] + '</label>'))
+                .append($('<br>'))
+            }
+        });
+      }
   })
 });
