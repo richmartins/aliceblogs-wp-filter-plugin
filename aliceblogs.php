@@ -17,11 +17,13 @@ class Aliceblogs {
         add_action('wp_ajax_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_get_studios', [$this, 'get_studios']);
+        add_action('wp_ajax_get_students', [$this, 'get_students']);
         add_action('wp_ajax_nopriv_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_nopriv_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_nopriv_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
+        add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
     }
 
     public function get_posts(){
@@ -140,6 +142,21 @@ class Aliceblogs {
                 $roles[$role_slug] = $role_name;
             }
             echo json_encode($roles);
+        }
+        die();
+    }
+
+    public function get_students() {
+        if(isset($_POST['studios_ids'])){
+            $users = [];
+            foreach($_POST['studios_ids'] as $role) {
+                $users_belongs_to_role = get_users(['role' => $role]);
+    
+                foreach($users_belongs_to_role as $user) {
+                    $users[$user->ID] = $user->display_name;
+                }
+            }
+            echo json_encode($users);
         }
         die();
     }

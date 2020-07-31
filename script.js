@@ -65,6 +65,7 @@ jQuery(document).ready(function($){
             $('#aliceblogs-filter-degrees').empty()
             $('#aliceblogs-filter-elements').empty()
             $('#aliceblogs-filter-studios').empty()
+            $('#aliceblogs-filter-students').empty()
             let degrees = JSON.parse(results)
             for (index in degrees) {
                 $('#aliceblogs-filter-degrees')
@@ -88,6 +89,7 @@ jQuery(document).ready(function($){
             get_posts(degree_id);
             $('#aliceblogs-filter-elements').empty()
             $('#aliceblogs-filter-studios').empty()
+            $('#aliceblogs-filter-students').empty()
             let elements = JSON.parse(results)
             for (index in elements) {
                 $('#aliceblogs-filter-elements')
@@ -143,25 +145,25 @@ jQuery(document).ready(function($){
         //$('#aliceblogs-filter-studios').empty()
       } else {
         get_posts(elements_ids, studios_ids)
-        /*
+        
         $.ajax({
           url: url,
           type: "POST",
           data: {
-            'action': 'get_studios',
-            'elements_ids': elements_ids
+            'action': 'get_students',
+            'studios_ids': studios_ids
           }
         }).done(function(results) {
-          $('#aliceblogs-filter-studios').empty()
-            let studios = JSON.parse(results)
-            for (index in studios) {
-                $('#aliceblogs-filter-studios')
-                .append($('<input type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
-                .append($('<label for="' + index + '" >' + studios[index] + '</label>'))
+          $('#aliceblogs-filter-students').empty()
+            let students = JSON.parse(results)
+            for (index in students) {
+                $('#aliceblogs-filter-students')
+                .append($('<input type="checkbox" id="' + index + '" name="students" value="' + students[index] + '">'))
+                .append($('<label for="' + index + '" >' + students[index] + '</label>'))
                 .append($('<br>'))
             }
         });
-        */
+        
       }
     })
 });

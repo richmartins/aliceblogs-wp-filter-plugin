@@ -1,6 +1,7 @@
 #aliceblogs-filter-box {
     display: flex;
     flex-direction: row;
+    justify-content: center;
     margin-left: 1em;
 }
 
