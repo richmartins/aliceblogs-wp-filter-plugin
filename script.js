@@ -1,5 +1,54 @@
 jQuery(document).ready(function($){
+    let view_options = 'card'
+    let posts = ''
     get_posts();
+
+    $('#aliceblogs-view-mosaic').click( function() {
+      if(! $('#aliceblogs-view-mosaic').hasClass("aliceblogs-view-active")) {
+        $('#aliceblogs-view-list').removeClass("aliceblogs-view-active")
+        $('#aliceblogs-view-mosaic').addClass("aliceblogs-view-active")
+        view_options = 'card'
+        render_posts();
+      }
+    })
+
+    $('#aliceblogs-view-list').click( function() {
+      if(! $('#aliceblogs-view-list').hasClass("aliceblogs-view-active")) {
+        $('#aliceblogs-view-mosaic').removeClass("aliceblogs-view-active")
+        $('#aliceblogs-view-list').addClass("aliceblogs-view-active")
+        view_options = 'list'
+        render_posts();
+      }
+    })
+
+    function render_posts(){
+      $('#aliceblogs-carddeck').empty()
+      html = ''
+      if (posts !== null) {
+        for (index in posts) {
+          if (view_options == 'card') {
+            html += '<div class="aliceblogs-card animate__animated animate__fadeInRight">'
+            html += '<a href="' + posts[index].url + '">'
+            html += '<div class="hvrbox">'
+            html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
+            html += '<div class="hvrbox-layer_top">'
+            html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
+            html += '</div></div></div></a></div>'
+          } else if (view_options == 'list') {
+            html += '<div class="animate__animated animate__fadeInRight aliceblogs-list">'
+            html += '<div class="aliceblogs-list-title"><h1><a href="' + posts[index].url + '">' + posts[index].title + '</a></h1></div>'
+            html += '<div class="aliceblogs-list-subtitle"><h6>par ' + posts[index].author + ' | ' + posts[index].date + '</h6></div>'
+            html += '<div class="aliceblogs-list-content">' + posts[index].content + '</div>'
+            html += '<div class="aliceblogs-list-footer"></div>'
+            html += '</div>'
+          }
+        }
+      } else {
+        html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
+      } 
+      
+      $('#aliceblogs-carddeck').html(html)
+    }
 
     function get_posts(categories = null, studios = null, students = null){
       $.ajax({
@@ -7,37 +56,18 @@ jQuery(document).ready(function($){
             type: "POST",
             data: {
                 'action': 'get_posts',
+                'view': view_options,
                 'categories': categories,
                 'roles': studios,
                 'users': students
             },
             beforeSend: function() {
-              loader()
+              $('#aliceblogs-carddeck').html('<div id="container-loader"><div class="loader"></div></div>')
             }
       }).done(function (results) {
-            $('#aliceblogs-carddeck').empty()
-            let posts = JSON.parse(results)
-            html = ''
-            if (posts !== null) {
-              for (index in posts) {
-                html += '<div class="aliceblogs-card animate__animated animate__fadeInRight">'
-                html += '<a href="' + posts[index].url + '">'
-                html += '<div class="hvrbox">'
-                html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
-                html += '<div class="hvrbox-layer_top">'
-                html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
-                html += '</div></div></div></a></div>'
-              }
-            } else {
-              html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
-            } 
-            
-            $('#aliceblogs-carddeck').html(html)
+          posts = JSON.parse(results)
+          render_posts()  
       });
-    }
-
-    function loader() {
-      $('#aliceblogs-carddeck').html('<div id="container-loader"><div class="loader"></div></div>')
     }
 
     $.ajax({

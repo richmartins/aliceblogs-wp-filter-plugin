@@ -90,7 +90,8 @@
 
 .aliceblogs-card {
     display: block;
-    margin: 0 1.5em;
+    margin-bottom: 1.5em;
+    margin-right: 1.5em;
     align-items: center;
 }
 
@@ -114,7 +115,29 @@
 
 .aliceblogs-view-options > div:hover {
     cursor: pointer;
+}
+
+.aliceblogs-view-active {
     color: #666
+}
+
+.aliceblogs-list {
+    margin-bottom: 4em;
+    color: var(--black);
+    width: 100%;
+}
+
+.aliceblogs-list-footer {
+    margin-top: 2em;
+    border-bottom: 1px solid var(--black);
+}
+
+.aliceblogs-list-title > h1 > a:hover {
+    text-decoration: underline;
+}
+
+.aliceblogs-list-content {
+    text-align: justify;
 }
 
 /***** HOVER BOX FROM : http://css-workshop.com/hover-box-text-over-images-on-hover-and-more/ *****/

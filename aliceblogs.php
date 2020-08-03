@@ -59,11 +59,13 @@ class Aliceblogs {
             $posts[$post->ID] = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
-                'thumbnail' => get_the_post_thumbnail_url($post->ID)
+                'thumbnail' => get_the_post_thumbnail_url($post->ID),
+                'date'      => get_the_date('d M Y', $post->ID),
+                'author'    => get_the_author_meta('display_name', $post->post_author),
+                'content'   => $post->post_content
             ];
         }
         echo json_encode($posts);
-        // echo json_encode($_POST['roles']);
         die();
     }
 
