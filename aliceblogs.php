@@ -24,6 +24,30 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
+
+        add_action('show_user_profile', [$this, 'custom_user_profile_fields'], 10, 1);
+        add_action('edit_user_profile', [$this, 'custom_user_profile_fields'], 10, 1);
+        add_action('user_new_form', [$this, 'custom_user_profile_fields'], 10, 1);
+    }
+
+    /**
+     * Create custom field in WP new-user page settings
+     * Work in progress
+     */
+    public function custom_user_profile_fields($profileuser) {
+        ?>
+            <table class="form-table">
+                <tr>
+                    <th>
+                        <label for="user_testfield"><?php _e('Test'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text" name="user_testfield" id="user_testfield" value="" class="regular-text" />
+                        <br><span class="description"><?php _e('Your test field.', 'text-domain'); ?></span>
+                    </td>
+                </tr>
+            </table>
+        <?php
     }
 
     public function get_posts(){
@@ -32,13 +56,15 @@ class Aliceblogs {
             $categories = implode(",", $categories);
         }
 
+        $users = $_POST['users'];
         // Get all users from selected studios
-        $users = [];
-        foreach($_POST['roles'] as $role) {
-            $users_belongs_to_role = get_users(['role' => $role]);
-
-            foreach($users_belongs_to_role as $user) {
-                array_push($users, $user->ID);
+        if(is_array($_POST['roles'])){
+            $users = [];
+            foreach($_POST['roles'] as $role) {
+                $users_belongs_to_role = get_users(['role' => $role]);
+                foreach($users_belongs_to_role as $user) {
+                    array_push($users, $user->ID);
+                }
             }
         }
 
@@ -48,7 +74,7 @@ class Aliceblogs {
             'post_type' => 'post',
             'cat' => [$categories],
             'post_status' => 'publish',
-            'author' => $users = implode(",", $users)
+            'author' => implode(",", $users)
         ];
         $query = new WP_Query($args);
 
@@ -60,6 +86,7 @@ class Aliceblogs {
             ];
         }
         echo json_encode($posts);
+        // echo json_encode($_POST['roles']);
         die();
     }
 
@@ -147,20 +174,19 @@ class Aliceblogs {
     }
 
     public function get_students() {
-        if(isset($_POST['studios_ids'])){
+        if(isset($_POST['studios_names'])){
             $users = [];
-            foreach($_POST['studios_ids'] as $role) {
+            foreach($_POST['studios_names'] as $role) {
                 $users_belongs_to_role = get_users(['role' => $role]);
-    
                 foreach($users_belongs_to_role as $user) {
                     $users[$user->ID] = $user->display_name;
                 }
             }
             echo json_encode($users);
+            // echo json_encode($users_belongs_to_role);
         }
         die();
     }
-
 }
 
 new Aliceblogs();

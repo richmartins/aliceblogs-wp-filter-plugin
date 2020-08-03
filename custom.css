@@ -1,3 +1,77 @@
+/**
+    TEST WORK IN PROGRESS
+**/
+
+.box-v {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.box-h {
+    padding: 5px;
+    min-width: 50%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    box-shadow: 0 0 10px;
+    border-radius: 10px;
+}
+
+:root {
+	--white: #ffffff;
+	--light: #f0eff3;
+	--black: #000000;
+	--dark-blue: #1f2029;
+	--dark-light: #353746;
+	--red: #da2c4d;
+	--yellow: #f8ab37;
+	--grey: #ecedf3;
+}
+
+.box-v [type="checkbox"]:checked,
+.box-v [type="checkbox"]:not(:checked),
+.box-v [type="radio"]:checked,
+.box-v [type="radio"]:not(:checked){
+	position: absolute;
+	left: -9999px;
+	width: 0;
+	height: 0;
+	visibility: hidden;
+}
+
+.checkbox-tools:checked + label,
+.checkbox-tools:not(:checked) + label{
+	position: relative;
+	display: inline-block;
+	padding: 5px;
+    width: auto;
+    min-width: 110px;
+	font-size: 14px;
+	line-height: 20px;
+	letter-spacing: 1px;
+	margin: 0 auto;
+	margin-left: 5px;
+	margin-right: 5px;
+	text-align: left;
+	overflow: hidden;
+	cursor: pointer;
+	text-transform: uppercase;
+	color: var(--black);
+}
+
+.checkbox-tools:checked + label{
+    border-bottom: 2px solid black;
+}
+
+/**
+    END BLOCK
+**/
+
+
+/**** MOSAIC CONTENT ****/
 #aliceblogs-filter-box {
     display: flex;
     flex-direction: row;
@@ -14,6 +88,7 @@
     display: flex!important;
     flex-direction: row!important;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .aliceblogs-card {
@@ -22,7 +97,7 @@
     align-items: center;
 }
 .hvrbox > img.hvrbox-layer_bottom {
-    max-width: 350px!important;
+    max-width: 300px!important;
     height: auto!important;
 }
 

@@ -1,14 +1,15 @@
 jQuery(document).ready(function($){
     get_posts();
 
-    function get_posts(categories = null, studios = null){
+    function get_posts(categories = null, studios = null, students = null){
       $.ajax({
             url: url,
             type: "POST",
             data: {
                 'action': 'get_posts',
                 'categories': categories,
-                'roles': studios
+                'roles': studios,
+                'users': students
             },
             beforeSend: function() {
               loader()
@@ -45,8 +46,8 @@ jQuery(document).ready(function($){
         let years = JSON.parse(results)
         for (index in years) {
             $('#aliceblogs-filter-year')
-            .append($('<input type="radio" id="' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
-            .append($('<label for="' + years[index].term_id + '" >' + years[index].name + '</label>'))
+            .append($('<input class="checkbox-tools" type="radio" id="' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
+            .append($('<label class="for-checkbox-tools" for="' + years[index].term_id + '" >' + years[index].name + '</label>'))
             .append($('<br>'))
         }
     });
@@ -69,8 +70,8 @@ jQuery(document).ready(function($){
             let degrees = JSON.parse(results)
             for (index in degrees) {
                 $('#aliceblogs-filter-degrees')
-                .append($('<input type="radio" id="' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
-                .append($('<label for="' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
+                .append($('<input class="checkbox-tools" type="radio" id="' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
+                .append($('<label class="for-checkbox-tools" for="' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -93,8 +94,8 @@ jQuery(document).ready(function($){
             let elements = JSON.parse(results)
             for (index in elements) {
                 $('#aliceblogs-filter-elements')
-                .append($('<input type="checkbox" id="' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
-                .append($('<label for="' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
+                .append($('<label class="for-checkbox-tools" for="' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -105,9 +106,10 @@ jQuery(document).ready(function($){
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id');
       }).get();
+      $('#aliceblogs-filter-studios').empty()
+      $('#aliceblogs-filter-students').empty()
       if (elements_ids.length === 0) {
         get_posts(degree_id)
-        $('#aliceblogs-filter-studios').empty()
       } else {
         get_posts(elements_ids)
         
@@ -123,8 +125,8 @@ jQuery(document).ready(function($){
             let studios = JSON.parse(results)
             for (index in studios) {
                 $('#aliceblogs-filter-studios')
-                .append($('<input type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
-                .append($('<label for="' + index + '" >' + studios[index] + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
+                .append($('<label class="for-checkbox-tools" for="' + index + '" >' + studios[index] + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -132,38 +134,60 @@ jQuery(document).ready(function($){
     })
 
     $('#aliceblogs-filter-studios').change(function () {
-      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
+      // let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id');
       }).get();
-      let studios_ids = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function(){
+      let studios_names = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function(){
         return $(this).attr('id');
       }).get();
 
-      if (studios_ids.length === 0) {
+      if (studios_names.length === 0) {
         get_posts(elements_ids)
-        //$('#aliceblogs-filter-studios').empty()
+        $('#aliceblogs-filter-students').empty()
       } else {
-        get_posts(elements_ids, studios_ids)
+        get_posts(elements_ids, studios_names)
         
         $.ajax({
           url: url,
           type: "POST",
           data: {
             'action': 'get_students',
-            'studios_ids': studios_ids
+            'studios_names': studios_names
           }
         }).done(function(results) {
           $('#aliceblogs-filter-students').empty()
             let students = JSON.parse(results)
             for (index in students) {
                 $('#aliceblogs-filter-students')
-                .append($('<input type="checkbox" id="' + index + '" name="students" value="' + students[index] + '">'))
-                .append($('<label for="' + index + '" >' + students[index] + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="' + index + '" name="students" value="' + students[index] + '">'))
+                .append($('<label class="for-checkbox-tools" for="' + index + '" >' + students[index] + '</label>'))
                 .append($('<br>'))
             }
         });
         
+      }
+    })
+    $('#aliceblogs-filter-students').change(function () { 
+
+      //preparing data filters
+      let students_ids = $("#aliceblogs-filter-students>input:checkbox:checked").map(function () {
+        return $(this).attr('id');
+      }).get(); 
+
+      let studios_names = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function () {
+        return $(this).attr('id');
+      }).get();
+
+      let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function () {
+        return $(this).attr('id');
+      }).get();
+
+      if (students_ids.length === 0) {
+        get_posts(elements_ids, studios_names)
+      } else {
+        studios_names = null
+        get_posts(elements_ids, studios_names, students_ids)
       }
     })
 });
