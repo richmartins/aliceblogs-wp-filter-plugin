@@ -46,14 +46,15 @@ jQuery(document).ready(function($){
         let years = JSON.parse(results)
         for (index in years) {
             $('#aliceblogs-filter-year')
-            .append($('<input class="checkbox-tools" type="radio" id="' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
-            .append($('<label class="for-checkbox-tools" for="' + years[index].term_id + '" >' + years[index].name + '</label>'))
+            .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
+            .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
             .append($('<br>'))
         }
     });
 
     $('#aliceblogs-filter-year').change( function() {
         let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id');
+        year_id = year_id.replace('year-', '')
         $.ajax({
           url: url,
           type: "POST",
@@ -70,8 +71,8 @@ jQuery(document).ready(function($){
             let degrees = JSON.parse(results)
             for (index in degrees) {
                 $('#aliceblogs-filter-degrees')
-                .append($('<input class="checkbox-tools" type="radio" id="' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
-                .append($('<label class="for-checkbox-tools" for="' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
+                .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
+                .append($('<label class="for-checkbox-tools" for="degree-' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -79,6 +80,7 @@ jQuery(document).ready(function($){
 
     $('#aliceblogs-filter-degrees').change(function () {
         let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
+        degree_id = degree_id.replace('degree-', '')
         $.ajax({
           url: url,
           type: "POST",
@@ -94,8 +96,8 @@ jQuery(document).ready(function($){
             let elements = JSON.parse(results)
             for (index in elements) {
                 $('#aliceblogs-filter-elements')
-                .append($('<input class="checkbox-tools" type="checkbox" id="' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
-                .append($('<label class="for-checkbox-tools" for="' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="element-' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
+                .append($('<label class="for-checkbox-tools" for="element-' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -103,8 +105,9 @@ jQuery(document).ready(function($){
 
     $('#aliceblogs-filter-elements').change(function () {
       let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
+      degree_id = degree_id.replace('degree-', '')
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
-        return $(this).attr('id');
+        return $(this).attr('id').replace('element-', '');
       }).get();
       $('#aliceblogs-filter-studios').empty()
       $('#aliceblogs-filter-students').empty()
@@ -125,8 +128,8 @@ jQuery(document).ready(function($){
             let studios = JSON.parse(results)
             for (index in studios) {
                 $('#aliceblogs-filter-studios')
-                .append($('<input class="checkbox-tools" type="checkbox" id="' + index + '" name="studios" value="' + studios[index] + '">'))
-                .append($('<label class="for-checkbox-tools" for="' + index + '" >' + studios[index] + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="studio-' + index + '" name="studios" value="' + studios[index] + '">'))
+                .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index] + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -134,12 +137,11 @@ jQuery(document).ready(function($){
     })
 
     $('#aliceblogs-filter-studios').change(function () {
-      // let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
-        return $(this).attr('id');
+        return $(this).attr('id').replace('element-', '');
       }).get();
       let studios_names = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function(){
-        return $(this).attr('id');
+        return $(this).attr('id').replace('studio-', '');
       }).get();
 
       if (studios_names.length === 0) {
@@ -160,8 +162,8 @@ jQuery(document).ready(function($){
             let students = JSON.parse(results)
             for (index in students) {
                 $('#aliceblogs-filter-students')
-                .append($('<input class="checkbox-tools" type="checkbox" id="' + index + '" name="students" value="' + students[index] + '">'))
-                .append($('<label class="for-checkbox-tools" for="' + index + '" >' + students[index] + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
+                .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
                 .append($('<br>'))
             }
         });
@@ -172,15 +174,15 @@ jQuery(document).ready(function($){
 
       //preparing data filters
       let students_ids = $("#aliceblogs-filter-students>input:checkbox:checked").map(function () {
-        return $(this).attr('id');
+        return $(this).attr('id').replace('student-', '');
       }).get(); 
 
       let studios_names = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function () {
-        return $(this).attr('id');
+        return $(this).attr('id').replace('studio-', '');
       }).get();
 
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function () {
-        return $(this).attr('id');
+        return $(this).attr('id').replace('element-', '');
       }).get();
 
       if (students_ids.length === 0) {
