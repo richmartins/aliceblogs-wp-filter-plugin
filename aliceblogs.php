@@ -10,6 +10,7 @@ defined('ABSPATH' ) or die( 'No script kiddies please!' );
 class Aliceblogs {
     public function __construct(){
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
+        wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
         wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/script.js', array ( 'jquery' ));
         wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
@@ -24,30 +25,6 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
-
-        add_action('show_user_profile', [$this, 'custom_user_profile_fields'], 10, 1);
-        add_action('edit_user_profile', [$this, 'custom_user_profile_fields'], 10, 1);
-        add_action('user_new_form', [$this, 'custom_user_profile_fields'], 10, 1);
-    }
-
-    /**
-     * Create custom field in WP new-user page settings
-     * Work in progress
-     */
-    public function custom_user_profile_fields($profileuser) {
-        ?>
-            <table class="form-table">
-                <tr>
-                    <th>
-                        <label for="user_testfield"><?php _e('Test'); ?></label>
-                    </th>
-                    <td>
-                        <input type="text" name="user_testfield" id="user_testfield" value="" class="regular-text" />
-                        <br><span class="description"><?php _e('Your test field.', 'text-domain'); ?></span>
-                    </td>
-                </tr>
-            </table>
-        <?php
     }
 
     public function get_posts(){

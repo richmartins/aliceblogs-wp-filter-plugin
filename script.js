@@ -18,17 +18,21 @@ jQuery(document).ready(function($){
             $('#aliceblogs-carddeck').empty()
             let posts = JSON.parse(results)
             html = ''
-            for (index in posts) {
-              html += '<div class="aliceblogs-card">'
-              html += '<a href="' + posts[index].url + '">'
-              html += '<div class="hvrbox">'
-              html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
-              html += '<div class="hvrbox-layer_top">'
-              html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
-              html += '</div></div></div></a></div>'
-            }
+            if (posts !== null) {
+              for (index in posts) {
+                html += '<div class="aliceblogs-card animate__animated animate__fadeInRight">'
+                html += '<a href="' + posts[index].url + '">'
+                html += '<div class="hvrbox">'
+                html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
+                html += '<div class="hvrbox-layer_top">'
+                html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
+                html += '</div></div></div></a></div>'
+              }
+            } else {
+              html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
+            } 
             
-            $('#aliceblogs-carddeck').html(html) 
+            $('#aliceblogs-carddeck').html(html)
       });
     }
 
@@ -44,6 +48,10 @@ jQuery(document).ready(function($){
         }
         }).done(function(results) {
         let years = JSON.parse(results)
+        $('#aliceblogs-filter-year')
+        .append($('<input class="checkbox-tools" type="radio" id="year-all" name="year" value="all">'))
+        .append($('<label class="for-checkbox-tools" for="year-all" >Tous</label>'))
+        .append($('<br>'))
         for (index in years) {
             $('#aliceblogs-filter-year')
             .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
@@ -53,8 +61,7 @@ jQuery(document).ready(function($){
     });
 
     $('#aliceblogs-filter-year').change( function() {
-        let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id');
-        year_id = year_id.replace('year-', '')
+      let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id').replace('year-', '')
         $.ajax({
           url: url,
           type: "POST",
@@ -79,8 +86,7 @@ jQuery(document).ready(function($){
     });
 
     $('#aliceblogs-filter-degrees').change(function () {
-        let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
-        degree_id = degree_id.replace('degree-', '')
+        let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id').replace('degree-', '');
         $.ajax({
           url: url,
           type: "POST",
@@ -104,8 +110,7 @@ jQuery(document).ready(function($){
     })
 
     $('#aliceblogs-filter-elements').change(function () {
-      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id');
-      degree_id = degree_id.replace('degree-', '')
+      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id').replace('degree-', '')
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id').replace('element-', '');
       }).get();
