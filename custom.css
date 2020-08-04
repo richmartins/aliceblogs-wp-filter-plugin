@@ -62,6 +62,38 @@
     color: red;
 }
 
+#aliceblogs-header {
+    display: flex;
+}
+
+#aliceblogs-header-menu {
+    text-align: right;
+}
+
+/* Divi - Stick footer to bottom */
+#page-container #et-boc {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-flow: column;
+    flex-flow: column;
+    min-height: 100vh;
+}
+
+#et-main-area {
+    display:-webkit-box;
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-flow: column;
+    flex-flow: column;
+}
+
+#et-main-area, #main-content  {
+    -webkit-box-flex: 1 0 auto;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
+}
+
 /** Edit WP footer class **/
 #footer-info {
     text-align: center !important;
@@ -95,11 +127,12 @@
     align-items: center;
 }
 
+/*
 .aliceblogs-nocard {
     width: 100%;
     display: flex;
     justify-content: center;
-}
+}*/
 
 .hvrbox > img.hvrbox-layer_bottom {
     max-width: 300px!important;

@@ -26,7 +26,7 @@ jQuery(document).ready(function($){
       if (posts !== null) {
         for (index in posts) {
           if (view_options == 'card') {
-            html += '<div class="aliceblogs-card animate__animated animate__fadeInRight">'
+            html += '<div class="aliceblogs-card animate__animated animate__fadeIn">'
             html += '<a href="' + posts[index].url + '">'
             html += '<div class="hvrbox">'
             html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
@@ -34,7 +34,7 @@ jQuery(document).ready(function($){
             html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
             html += '</div></div></div></a></div>'
           } else if (view_options == 'list') {
-            html += '<div class="animate__animated animate__fadeInRight aliceblogs-list">'
+            html += '<div class="animate__animated animate__fadeIn aliceblogs-list">'
             html += '<div class="aliceblogs-list-title"><h1><a href="' + posts[index].url + '">' + posts[index].title + '</a></h1></div>'
             html += '<div class="aliceblogs-list-subtitle"><h6>par ' + posts[index].author + ' | ' + posts[index].date + '</h6></div>'
             html += '<div class="aliceblogs-list-content">' + posts[index].content + '</div>'

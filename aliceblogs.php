@@ -25,6 +25,22 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
+        add_action('init', [$this, 'remove_divi_projects']);
+        add_action( 'admin_menu', [$this, 'my_remove_admin_menus']);
+    }
+
+    /**
+     * Disable Divi custom post type : Projects
+     */
+    public function remove_divi_projects(){
+        unregister_post_type('project');
+    }
+    
+    /**
+     * Remove WP Comments link on admin sidebar
+     */
+    public function my_remove_admin_menus() {
+        remove_menu_page('edit-comments.php');
     }
 
     public function get_posts(){
