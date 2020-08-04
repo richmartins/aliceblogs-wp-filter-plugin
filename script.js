@@ -1,7 +1,6 @@
 jQuery(document).ready(function($){
     let view_options = 'card'
     let posts = ''
-    get_posts();
 
     $('#aliceblogs-view-mosaic').click( function() {
       if(! $('#aliceblogs-view-mosaic').hasClass("aliceblogs-view-active")) {
@@ -46,7 +45,6 @@ jQuery(document).ready(function($){
       } else {
         html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
       } 
-      
       $('#aliceblogs-carddeck').html(html)
     }
 
@@ -56,7 +54,6 @@ jQuery(document).ready(function($){
             type: "POST",
             data: {
                 'action': 'get_posts',
-                'view': view_options,
                 'categories': categories,
                 'roles': studios,
                 'users': students
@@ -71,48 +68,59 @@ jQuery(document).ready(function($){
     }
 
     $.ajax({
+      url: url,
+      type: "POST",
+      data: {
+          'action': 'get_years'
+      }
+      }).done(function(results) {
+      let years = JSON.parse(results)
+      
+      for (index in years) {
+        $('#aliceblogs-filter-year')
+        .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
+        .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
+        .append($('<br>'))
+      }
+
+      // auto select current year if exist in list & auto call get_degrees
+      let current_year = new Date().getFullYear()
+      selected_year_exist = years.find(year => year.name == current_year)
+      if (selected_year_exist) {
+        $('#year-' + selected_year_exist.term_id).attr('checked','checked')
+        get_degrees()
+      } else {
+        get_posts()
+      }
+    });
+
+    function get_degrees() {
+      let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id').replace('year-', '')
+      $.ajax({
         url: url,
         type: "POST",
         data: {
-            'action': 'get_years'
+          'action': 'get_degrees',
+          'year_id': year_id
         }
-        }).done(function(results) {
-        let years = JSON.parse(results)
-        $('#aliceblogs-filter-year')
-        .append($('<input class="checkbox-tools" type="radio" id="year-all" name="year" value="all">'))
-        .append($('<label class="for-checkbox-tools" for="year-all" >Tous</label>'))
-        .append($('<br>'))
-        for (index in years) {
-            $('#aliceblogs-filter-year')
-            .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
-            .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
-            .append($('<br>'))
-        }
-    });
+      }).done(function(results) {
+          get_posts(year_id);
+          $('#aliceblogs-filter-degrees').empty()
+          $('#aliceblogs-filter-elements').empty()
+          $('#aliceblogs-filter-studios').empty()
+          $('#aliceblogs-filter-students').empty()
+          let degrees = JSON.parse(results)
+          for (index in degrees) {
+              $('#aliceblogs-filter-degrees')
+              .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
+              .append($('<label class="for-checkbox-tools" for="degree-' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
+              .append($('<br>'))
+          }
+      });
+    }
 
     $('#aliceblogs-filter-year').change( function() {
-      let year_id = $('#aliceblogs-filter-year').find(":checked").attr('id').replace('year-', '')
-        $.ajax({
-          url: url,
-          type: "POST",
-          data: {
-            'action': 'get_degrees',
-            'year_id': year_id
-          }
-        }).done(function(results) {
-            get_posts(year_id);
-            $('#aliceblogs-filter-degrees').empty()
-            $('#aliceblogs-filter-elements').empty()
-            $('#aliceblogs-filter-studios').empty()
-            $('#aliceblogs-filter-students').empty()
-            let degrees = JSON.parse(results)
-            for (index in degrees) {
-                $('#aliceblogs-filter-degrees')
-                .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
-                .append($('<label class="for-checkbox-tools" for="degree-' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
-                .append($('<br>'))
-            }
-        });
+      get_degrees()
     });
 
     $('#aliceblogs-filter-degrees').change(function () {

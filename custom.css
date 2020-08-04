@@ -1,20 +1,16 @@
 .box-v {
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding-right: 10px;
 }
 
 .box-h {
-    padding: 5px;
     min-width: 50%;
     margin: 0 auto;
     display: flex;
-    border-left: 3px solid black;
     flex-direction: row;
     justify-content: flex-start;
     flex-wrap: wrap;
-    /* box-shadow: 0 0 10px; */
-    /* border-radius: 10px; */
 }
 
 :root {
@@ -46,13 +42,11 @@
     padding: .5em .5em .5em 0;
     font-weight: bold;
     width: 100%;
-    min-width: 110px;
+    min-width: 60px;
     font-size: 14px;
     line-height: 20px;
     letter-spacing: 1px;
-    border-bottom: 2px solid transparent;
     margin: 0 auto;
-    margin-left: 5px;
     margin-right: 5px;
     text-align: left;
     overflow: hidden;
@@ -62,10 +56,16 @@
 }
 
 .checkbox-tools:hover + label:hover{
-    border-bottom: 2px solid black;
+    color: red;
 }
 .checkbox-tools:checked + label{
-    border-bottom: 2px dotted black;
+    color: red;
+}
+
+/** Edit WP footer class **/
+#footer-info {
+    text-align: center !important;
+    float: none !important;
 }
 
 /**** MOSAIC CONTENT ****/
