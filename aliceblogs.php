@@ -18,14 +18,16 @@ class Aliceblogs {
         add_action('wp_ajax_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_get_students', [$this, 'get_students']);
+        add_action('wp_ajax_search_posts', [$this, 'search_posts']);
         add_action('wp_ajax_nopriv_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_nopriv_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_nopriv_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
+        add_action('wp_ajax_nopriv_search_posts', [$this, 'search_posts']);
         add_action('init', [$this, 'remove_divi_projects']);
-        add_action('admin_menu', [$this, 'my_remove_admin_menus']);
+        add_action('admin_menu', [$this, 'remove_wp_comments']);
     }
 
     /**
@@ -49,10 +51,15 @@ class Aliceblogs {
     /**
      * Remove WP Comments link on admin sidebar
      */
-    public function my_remove_admin_menus() {
+    public function remove_wp_comments() {
         remove_menu_page('edit-comments.php');
     }
-
+    
+    /**
+     * get_posts
+     *
+     * @return void
+     */
     public function get_posts(){
         $categories = $_POST['categories'];
         if (is_array($categories)) {
@@ -94,7 +101,12 @@ class Aliceblogs {
         echo json_encode($posts);
         die();
     }
-
+    
+    /**
+     * get_years
+     *
+     * @return void
+     */
     public function get_years() {
         $taxonomies = [ 
             'taxonomy' => 'category'
@@ -108,7 +120,12 @@ class Aliceblogs {
         echo json_encode($terms);
         die();
     }
-
+    
+    /**
+     * get_degrees
+     *
+     * @return void
+     */
     public function get_degrees(){
         if (isset($_POST['year_id'])) {
             $taxonomies = [ 
@@ -123,7 +140,12 @@ class Aliceblogs {
         }
         die();
     }
-
+    
+    /**
+     * get_categories
+     *
+     * @return void
+     */
     public function get_categories() {
         if(isset($_POST['degree_id'])){
             $taxonomies = [ 
@@ -139,7 +161,12 @@ class Aliceblogs {
         }
         die();
     }
-
+    
+    /**
+     * get_studios
+     *
+     * @return void
+     */
     public function get_studios() {
         if(isset($_POST['elements_ids'])){
             if (is_array($_POST['elements_ids'])) {
@@ -177,7 +204,12 @@ class Aliceblogs {
         }
         die();
     }
-
+    
+    /**
+     * get_students
+     *
+     * @return void
+     */
     public function get_students() {
         if(isset($_POST['studios_names'])){
             $users = [];
@@ -188,7 +220,42 @@ class Aliceblogs {
                 }
             }
             echo json_encode($users);
-            // echo json_encode($users_belongs_to_role);
+        }
+        die();
+    }
+
+    /**
+     * search_posts
+     * 
+     * @return void
+     */
+    public function search_posts() {
+        if(isset($_POST['search_text'])){
+            global $wpdb;
+            
+            $wp_posts = $wpdb->prefix . "posts";
+            $wp_term_relationships = $wpdb->prefix . "term_relationships";
+            $wp_terms = $wpdb->prefix . "terms";
+            $wp_users = $wpdb->prefix . "users";
+            $wp_usermeta = $wpdb->prefix . "usermeta";
+            
+            $sql = "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date FROM " . $wp_posts . " as wp_posts INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id) INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id) INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID) INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id AND ( ( wp_taxonmy.name LIKE '%%%s%%' ) OR (wp_users.display_name LIKE '%%%s%%') OR (wp_posts.post_title LIKE '%%%s%%') OR (wp_usermeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND (wp_posts.post_status = 'publish')";
+            
+            $query_results = $wpdb->get_results($wpdb->prepare($sql, $_POST['search_text'], $_POST['search_text'], $_POST['search_text'], $_POST['search_text']));
+            $results = [];
+            
+            foreach($query_results as $result) {
+                $results[$result->ID] = [
+                    'title'     => $result->post_title,
+                    'url'       => $result->guid,
+                    'thumbnail' => get_the_post_thumbnail_url((int)$result->ID),
+                    'date'      => date('d M Y', strtotime($result->post_date)),
+                    'author'    => $result->display_name,
+                    'content'   => get_post_field('post_content', $result->ID)
+                ];
+            }
+
+            echo json_encode($results);
         }
         die();
     }

@@ -124,29 +124,54 @@
 }
 
 #aliceblogs-carddeck {
-    display: flex!important;
-    flex-direction: row!important;
-    flex-wrap: wrap;
-    width: 100%;
+  text-align: left;
+  column-count: 4;
+  column-gap: 8px; }
+  @media screen and (max-width: 1200px) {
+    section {
+      column-count: 2; } }
+  @media screen and (max-width: 800px) {
+    section {
+      column-count: 1; } }
+  section > .card {
+    margin-bottom: 8px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-before: avoid;
 }
 
 .aliceblogs-card {
     display: block;
-    margin-bottom: 1.5em;
-    margin-right: 1.5em;
-    align-items: center;
+    margin-bottom: 8px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-before: avoid;
 }
 
+.aliceblogs-card-img {
+    width: 100%;
+}
+
+
+.aliceblogs-card-text {
+    text-align: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+
+}
+
+.aliceblogs-card:hover .aliceblogs-card-text{
+    visibility: visible;
+    opacity: 1;
+}
 
 .aliceblogs-nocard {
     color: var(--grey);
     font-size: 20px;
 }
 
-.hvrbox > img.hvrbox-layer_bottom {
-    max-width: 300px!important;
-    height: auto!important;
-}
+
 
 .aliceblogs-view-options {
     display: flex; 
@@ -182,68 +207,6 @@
     text-align: justify;
 }
 
-/***** HOVER BOX FROM : http://css-workshop.com/hover-box-text-over-images-on-hover-and-more/ *****/
-.hvrbox,
-.hvrbox * {
-    box-sizing: border-box;
-}
-.hvrbox {
-    position: relative;
-    display: inline-block;
-    overflow: hidden;
-    max-width: 100%;
-    height: auto;
-}
-.hvrbox img {
-    max-width: 100%;
-}
-.hvrbox .hvrbox-layer_bottom {
-    display: block;
-}
-.hvrbox .hvrbox-layer_top {
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    padding: 15px;
-    -moz-transition: all 0.4s ease-in-out 0s;
-    -webkit-transition: all 0.4s ease-in-out 0s;
-    -ms-transition: all 0.4s ease-in-out 0s;
-    transition: all 0.4s ease-in-out 0s;
-}
-.hvrbox:hover .hvrbox-layer_top,
-.hvrbox.active .hvrbox-layer_top {
-    opacity: 1;
-}
-.hvrbox .hvrbox-text {
-    text-align: center;
-    font-size: 18px;
-    display: inline-block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    -moz-transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-}
-.hvrbox .hvrbox-text_mobile {
-    font-size: 15px;
-    border-top: 1px solid rgb(179, 179, 179); /* for old browsers */
-    border-top: 1px solid rgba(179, 179, 179, 0.7);
-    margin-top: 5px;
-    padding-top: 2px;
-    display: none;
-}
-.hvrbox.active .hvrbox-text_mobile {
-    display: block;
-}
 
 /***** LOADER *****/
 

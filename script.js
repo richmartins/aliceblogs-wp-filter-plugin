@@ -8,6 +8,7 @@ jQuery(document).ready(function($){
         $('#aliceblogs-view-mosaic').addClass("aliceblogs-view-active")
         view_options = 'card'
         render_posts();
+        reorder_mansory_layout_carddeck();
       }
     })
 
@@ -22,17 +23,15 @@ jQuery(document).ready(function($){
 
     function render_posts(){
       $('#aliceblogs-carddeck').empty()
+      $('#aliceblogs-listdeck').empty()
       html = ''
       if (posts !== null) {
         for (index in posts) {
           if (view_options == 'card') {
-            html += '<div class="aliceblogs-card animate__animated animate__fadeIn">'
-            html += '<a href="' + posts[index].url + '">'
-            html += '<div class="hvrbox">'
-            html += '<img alt="'+ posts[index].title +'" class="hvrbox-layer_bottom" src="'+ posts[index].thumbnail + '" />'
-            html += '<div class="hvrbox-layer_top">'
-            html += '<div class="hvrbox-text">'+ posts[index].title +'</div>'
-            html += '</div></div></div></a></div>'
+            html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
+            html += '<img alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
+            html += '<h4 class="aliceblogs-card-text">'+ posts[index].title +'</h4>'
+            html += '</a>'
           } else if (view_options == 'list') {
             html += '<div class="animate__animated animate__fadeIn aliceblogs-list">'
             html += '<div class="aliceblogs-list-title"><h1><a href="' + posts[index].url + '">' + posts[index].title + '</a></h1></div>'
@@ -45,7 +44,11 @@ jQuery(document).ready(function($){
       } else {
         html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
       } 
-      $('#aliceblogs-carddeck').html(html)
+      if(view_options == 'card'){
+        $('#aliceblogs-carddeck').html(html)
+      } else if (view_options == 'list'){
+        $('#aliceblogs-listdeck').html(html)
+      }
     }
 
     function get_posts(categories = null, studios = null, students = null){
@@ -261,8 +264,37 @@ jQuery(document).ready(function($){
 
     $('#aliceblogs-searchbar').keyup(function() {
       delay(function(){
-        // query search
-        console.log("search now")
-      }, 1000 );
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: {
+            'action': 'search_posts',
+            'search_text': $('#aliceblogs-searchbar').val()
+          }
+        }).done(function(results) {
+          posts = JSON.parse(results)
+          render_posts()
+        });
+      }, 500 );
     });
-});
+
+
+    // from : https://github.com/jessekorzan/css-masonry/blob/master/app.js
+    function reorder_mansory_layout_carddeck() {
+         var _wrapper = $("#aliceblogs-carddeck"),
+          _cards = $(".aliceblogs-card"),
+          _cols = Number(_wrapper.css("column-count")),
+          _out = [],
+          _col = 0;
+
+        while (_col < _cols) {
+          for (var i = 0; i < _cards.length; i += _cols) {
+            var _val = _cards[i + _col];
+            if (_val !== undefined)
+              _out.push(_val);
+          }
+          _col++;
+        }
+        _wrapper.html(_out);
+    };
+ });
