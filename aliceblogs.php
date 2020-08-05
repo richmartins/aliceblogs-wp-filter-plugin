@@ -238,10 +238,12 @@ class Aliceblogs {
             $wp_terms = $wpdb->prefix . "terms";
             $wp_users = $wpdb->prefix . "users";
             $wp_usermeta = $wpdb->prefix . "usermeta";
+
+            $search = str_replace(' ', '%', $_POST['search_text']);
             
             $sql = "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date FROM " . $wp_posts . " as wp_posts INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id) INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id) INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID) INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id AND ( ( wp_taxonmy.name LIKE '%%%s%%' ) OR (wp_users.display_name LIKE '%%%s%%') OR (wp_posts.post_title LIKE '%%%s%%') OR (wp_usermeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND (wp_posts.post_status = 'publish')";
             
-            $query_results = $wpdb->get_results($wpdb->prepare($sql, $_POST['search_text'], $_POST['search_text'], $_POST['search_text'], $_POST['search_text']));
+            $query_results = $wpdb->get_results($wpdb->prepare($sql, $search, $search, $search, $search));
             $results = [];
             
             foreach($query_results as $result) {

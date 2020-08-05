@@ -1,3 +1,12 @@
+@font-face {
+  font-family: alice;
+  src: url(./fonts-alice/AkzidenzGroteskPro-Regular.otf);
+}
+
+html, body {
+    font-family: alice!important;
+}
+
 .box-v {
     display: flex;
     flex-direction: column;
@@ -22,6 +31,7 @@
     --red: #da2c4d;
     --yellow: #f8ab37;
     --grey: #ecedf3;
+
 }
 
 .box-v [type="checkbox"]:checked,
@@ -128,12 +138,12 @@
   column-count: 4;
   column-gap: 8px; }
   @media screen and (max-width: 1200px) {
-    section {
+    #aliceblogs-carddeck {
       column-count: 2; } }
   @media screen and (max-width: 800px) {
-    section {
+    #aliceblogs-carddeck {
       column-count: 1; } }
-  section > .card {
+  #aliceblogs-carddeck > .aliceblogs-card {
     margin-bottom: 8px;
     break-inside: avoid;
     page-break-inside: avoid;

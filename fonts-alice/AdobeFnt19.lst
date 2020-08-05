@@ -1,0 +1,107 @@
+%!Adobe-FontList 1.19
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-Regular
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Regular
+MenuName:Akzidenz-Grotesk Pro Regular
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Akzidenz-Grotesk Pro Regular
+WritingScript:Roman
+OutlineFileName:\AkzidenzGroteskPro-Regular.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:138140
+FileModTime:1568130110
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-It
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Italic
+MenuName:Akzidenz-Grotesk Pro Regular
+StyleBits:1
+WeightClass:400
+WidthClass:5
+AngleClass:1
+FullName:Akzidenz-Grotesk Pro Italic
+WritingScript:Roman
+OutlineFileName:\AkzidenzGroteskPro-It.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:137948
+FileModTime:1568130110
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Italic
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-Ext
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Regular Extended
+MenuName:Akzidenz-Grotesk Pro Ext
+StyleBits:0
+WeightClass:400
+WidthClass:7
+AngleClass:0
+FullName:Akzidenz-Grotesk Pro Ext
+WritingScript:Roman
+OutlineFileName:\AkzidenzGroteskPro-Ext.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:131304
+FileModTime:1568130110
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Ext
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Ext
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:ALICE-AkzidenzGrotesk-SemiboldCondensed
+FamilyName:ALICE - Akzidenz Grotesk
+StyleName:Semibold Condensed
+MenuName:ALICE - Akzidenz Grotesk Semibold Condensed
+StyleBits:0
+WeightClass:500
+WidthClass:3
+AngleClass:0
+FullName:ALICE - Akzidenz Grotesk Semibold Condensed
+WritingScript:Roman
+OutlineFileName:\20190909-ALICE-AG_Pro-SB_CND-DEF.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:18384
+FileModTime:1568130107
+NameArray:0,Mac,4,ALICE - Akzidenz Grotesk Semibold Condensed
+NameArray:0,Win,1,ALICE - Akzidenz Grotesk Semibold Condensed
+NameArray:0,Win,16,ALICE - Akzidenz Grotesk
+%EndFont
+

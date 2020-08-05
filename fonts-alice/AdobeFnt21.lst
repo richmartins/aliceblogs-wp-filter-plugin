@@ -1,0 +1,115 @@
+%!Adobe-FontList 1.20
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-Regular
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Regular
+MenuName:Akzidenz-Grotesk Pro Regular
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Akzidenz-Grotesk Pro Regular
+WritingScript:Roman
+OutlineFileName:/Users/s.vd.z/Dropbox/Hubertus Design/90-ALICE CI/2019/Templates/2019 A3 Presentation Template/ALICE-2019-A3_Presentation-TEMPLATE-EXAMPLE Folder/Document fonts/AkzidenzGroteskPro-Regular.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:138140
+FileModTime:424965721
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Invalid
+OutlineFileName:/Users/s.vd.z/Dropbox/Hubertus Design/90-ALICE CI/2019/Templates/2019 A3 Presentation Template/ALICE-2019-A3_Presentation-TEMPLATE-EXAMPLE Folder/Document fonts/AdobeFnt21.lst
+FileLength:3214
+FileModTime:585520721
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-It
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Italic
+MenuName:Akzidenz-Grotesk Pro Regular
+StyleBits:1
+WeightClass:400
+WidthClass:5
+AngleClass:1
+FullName:Akzidenz-Grotesk Pro Italic
+WritingScript:Roman
+OutlineFileName:/Users/s.vd.z/Dropbox/Hubertus Design/90-ALICE CI/2019/Templates/2019 A3 Presentation Template/ALICE-2019-A3_Presentation-TEMPLATE-EXAMPLE Folder/Document fonts/AkzidenzGroteskPro-It.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:137948
+FileModTime:424965713
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Italic
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Regular
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:ALICE-AkzidenzGrotesk-SemiboldCondensed
+FamilyName:ALICE - Akzidenz Grotesk
+StyleName:Semibold Condensed
+MenuName:ALICE - Akzidenz Grotesk Semibold Condensed
+StyleBits:0
+WeightClass:500
+WidthClass:3
+AngleClass:0
+FullName:ALICE - Akzidenz Grotesk Semibold Condensed
+WritingScript:Roman
+OutlineFileName:/Users/s.vd.z/Dropbox/Hubertus Design/90-ALICE CI/2019/Templates/2019 A3 Presentation Template/ALICE-2019-A3_Presentation-TEMPLATE-EXAMPLE Folder/Document fonts/20190703-ALICE-AG_Pro-SB_CND-DEF.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:18292
+FileModTime:583863118
+NameArray:0,Mac,4,ALICE - Akzidenz Grotesk Semibold Condensed
+NameArray:0,Win,1,ALICE - Akzidenz Grotesk Semibold Condensed
+NameArray:0,Win,16,ALICE - Akzidenz Grotesk
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AkzidenzGroteskPro-Ext
+FamilyName:Akzidenz-Grotesk Pro
+StyleName:Regular Extended
+MenuName:Akzidenz-Grotesk Pro Ext
+StyleBits:0
+WeightClass:400
+WidthClass:7
+AngleClass:0
+FullName:Akzidenz-Grotesk Pro Ext
+WritingScript:Roman
+OutlineFileName:/Users/s.vd.z/Dropbox/Hubertus Design/90-ALICE CI/2019/Templates/2019 A3 Presentation Template/ALICE-2019-A3_Presentation-TEMPLATE-EXAMPLE Folder/Document fonts/AkzidenzGroteskPro-Ext.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:131304
+FileModTime:424965721
+NameArray:0,Mac,4,Akzidenz-Grotesk Pro Ext
+NameArray:0,Win,1,Akzidenz-Grotesk Pro Ext
+NameArray:0,Win,16,Akzidenz-Grotesk Pro
+%EndFont
+

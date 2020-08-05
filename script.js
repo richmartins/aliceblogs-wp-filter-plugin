@@ -2,6 +2,13 @@ jQuery(document).ready(function($){
     let view_options = 'card'
     let posts = ''
 
+    /**
+     * Empty search field when clicked on browser back to last page button
+     */
+    $(window).bind("pageshow", function() {
+      $('#aliceblogs-searchbar').val('')
+    })
+
     $('#aliceblogs-view-mosaic').click( function() {
       if(! $('#aliceblogs-view-mosaic').hasClass("aliceblogs-view-active")) {
         $('#aliceblogs-view-list').removeClass("aliceblogs-view-active")
@@ -25,7 +32,9 @@ jQuery(document).ready(function($){
       $('#aliceblogs-carddeck').empty()
       $('#aliceblogs-listdeck').empty()
       html = ''
-      if (posts !== null) {
+      if (posts === null || posts.length === 0) {
+        html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
+      } else {
         for (index in posts) {
           if (view_options == 'card') {
             html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
@@ -41,13 +50,23 @@ jQuery(document).ready(function($){
             html += '</div>'
           }
         }
-      } else {
-        html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
       } 
       if(view_options == 'card'){
         $('#aliceblogs-carddeck').html(html)
       } else if (view_options == 'list'){
         $('#aliceblogs-listdeck').html(html)
+      }
+    }
+
+    /**
+     * Toggle loader on/off
+     */
+    function toggle_loader() {
+      if ($('#aliceblogs-deck-loader').html() == '') {
+        $('#aliceblogs-deck-loader').html('<div id="container-loader"><div class="loader"></div></div>')
+        $('#aliceblogs-carddeck').empty()
+      } else {
+        $('#aliceblogs-deck-loader').empty()
       }
     }
 
@@ -62,10 +81,11 @@ jQuery(document).ready(function($){
                 'users': students
             },
             beforeSend: function() {
-              $('#aliceblogs-carddeck').html('<div id="container-loader"><div class="loader"></div></div>')
+              toggle_loader()
             }
       }).done(function (results) {
           posts = JSON.parse(results)
+          toggle_loader()
           render_posts()  
       });
     }
@@ -239,17 +259,6 @@ jQuery(document).ready(function($){
       }
     })
 
-    /** 
-     * Searchbar - hide filter when focus
-     */
-    $('#aliceblogs-searchbar').on('change paste keyup', function() {
-      if ($('#aliceblogs-searchbar').val() == '') {
-        $('#aliceblogs-filter').show()
-      } else {
-        $('#aliceblogs-filter').hide()
-      }
-    })
-
     /**
      * Searchbar - Query search after typing
      */
@@ -261,21 +270,35 @@ jQuery(document).ready(function($){
      };
     })();
 
-
+    /** 
+     * Searchbar - hide filter when focus
+     */
     $('#aliceblogs-searchbar').keyup(function() {
-      delay(function(){
-        $.ajax({
-          url: url,
-          type: "POST",
-          data: {
-            'action': 'search_posts',
-            'search_text': $('#aliceblogs-searchbar').val()
-          }
-        }).done(function(results) {
-          posts = JSON.parse(results)
-          render_posts()
-        });
-      }, 500 );
+      if ($('#aliceblogs-searchbar').val() != '') {
+         // query search
+        $('#aliceblogs-filter').hide()
+        delay(function(){
+          $.ajax({
+            url: url,
+            type: "POST",
+            data: {
+              'action': 'search_posts',
+              'search_text': $('#aliceblogs-searchbar').val()
+            },
+            beforeSend: function() {
+              toggle_loader()
+            }
+          }).done(function(results) {
+            posts = JSON.parse(results)
+              render_posts()
+              toggle_loader()
+          });
+        }, 500 );
+      } else {
+        // searchbar is empty : reset filter & show posts
+        get_degrees()
+        $('#aliceblogs-filter').show()
+      }
     });
 
 
