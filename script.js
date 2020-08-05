@@ -213,8 +213,8 @@ jQuery(document).ready(function($){
         
       }
     })
-    $('#aliceblogs-filter-students').change(function () { 
 
+    $('#aliceblogs-filter-students').change(function () { 
       //preparing data filters
       let students_ids = $("#aliceblogs-filter-students>input:checkbox:checked").map(function () {
         return $(this).attr('id').replace('student-', '');
@@ -235,4 +235,34 @@ jQuery(document).ready(function($){
         get_posts(elements_ids, studios_names, students_ids)
       }
     })
+
+    /** 
+     * Searchbar - hide filter when focus
+     */
+    $('#aliceblogs-searchbar').on('change paste keyup', function() {
+      if ($('#aliceblogs-searchbar').val() == '') {
+        $('#aliceblogs-filter').show()
+      } else {
+        $('#aliceblogs-filter').hide()
+      }
+    })
+
+    /**
+     * Searchbar - Query search after typing
+     */
+    var delay = (function(){
+      var timer = 0;
+      return function(callback, ms){
+      clearTimeout (timer);
+      timer = setTimeout(callback, ms);
+     };
+    })();
+
+
+    $('#aliceblogs-searchbar').keyup(function() {
+      delay(function(){
+        // query search
+        console.log("search now")
+      }, 1000 );
+    });
 });

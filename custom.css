@@ -40,7 +40,6 @@
     position: relative;
     display: inline-block;
     padding: .5em .5em .5em 0;
-    font-weight: bold;
     width: 100%;
     min-width: 60px;
     font-size: 14px;
@@ -68,6 +67,17 @@
 
 #aliceblogs-header-menu {
     text-align: right;
+}
+
+#aliceblogs-searchbar {
+    width: 100%;
+    font-size: 20px;
+    border: none;
+    border-bottom: 1px solid var(--grey);
+}
+
+#aliceblogs-searchbar:focus {
+    border-color: red;
 }
 
 /* Divi - Stick footer to bottom */
@@ -127,12 +137,11 @@
     align-items: center;
 }
 
-/*
+
 .aliceblogs-nocard {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}*/
+    color: var(--grey);
+    font-size: 20px;
+}
 
 .hvrbox > img.hvrbox-layer_bottom {
     max-width: 300px!important;
