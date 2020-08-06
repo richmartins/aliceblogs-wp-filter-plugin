@@ -31,9 +31,11 @@ jQuery(document).ready(function($){
     function render_posts(){
       $('#aliceblogs-carddeck').empty()
       $('#aliceblogs-listdeck').empty()
+      $('#aliceblogs-nocard').empty()
       html = ''
       if (posts === null || posts.length === 0) {
-        html += '<div class="aliceblogs-nocard"><h3>Aucun article n\'a été trouvé</h3></div>'
+        html += '<h3>Aucun article n\'a été trouvé</h3>'
+        $('#aliceblogs-nocard').html(html)
       } else {
         for (index in posts) {
           if (view_options == 'card') {
@@ -50,11 +52,12 @@ jQuery(document).ready(function($){
             html += '</div>'
           }
         }
-      } 
-      if(view_options == 'card'){
-        $('#aliceblogs-carddeck').html(html)
-      } else if (view_options == 'list'){
-        $('#aliceblogs-listdeck').html(html)
+        
+        if(view_options == 'card'){
+          $('#aliceblogs-carddeck').html(html)
+        } else if (view_options == 'list'){
+          $('#aliceblogs-listdeck').html(html)
+        }
       }
     }
 
@@ -62,11 +65,12 @@ jQuery(document).ready(function($){
      * Toggle loader on/off
      */
     function toggle_loader() {
-      if ($('#aliceblogs-deck-loader').html() == '') {
-        $('#aliceblogs-deck-loader').html('<div id="container-loader"><div class="loader"></div></div>')
+      if ($('#container-loader').html() == '') {
+        $('#container-loader').html('<div class="loader"></div>')
         $('#aliceblogs-carddeck').empty()
+        $('#aliceblogs-nocard').empty()
       } else {
-        $('#aliceblogs-deck-loader').empty()
+        $('#container-loader').empty()
       }
     }
 
@@ -273,7 +277,7 @@ jQuery(document).ready(function($){
     /** 
      * Searchbar - hide filter when focus
      */
-    $('#aliceblogs-searchbar').keyup(function() {
+    $('#aliceblogs-searchbar').on('input', function() {
       if ($('#aliceblogs-searchbar').val() != '') {
          // query search
         $('#aliceblogs-filter').hide()
@@ -290,8 +294,8 @@ jQuery(document).ready(function($){
             }
           }).done(function(results) {
             posts = JSON.parse(results)
-              render_posts()
               toggle_loader()
+              render_posts()
           });
         }, 500 );
       } else {
