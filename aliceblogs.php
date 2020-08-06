@@ -94,7 +94,7 @@ class Aliceblogs {
             $posts[$post->ID] = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
-                'thumbnail' => get_the_post_thumbnail_url($post->ID),
+                'thumbnail' => get_the_post_thumbnail_url((int)$post->ID) ? get_the_post_thumbnail_url((int)$post->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
                 'date'      => get_the_date('d M Y', $post->ID),
                 'author'    => get_the_author_meta('display_name', $post->post_author),
                 'content'   => $post->post_content
@@ -252,7 +252,7 @@ class Aliceblogs {
                 $results[$result->ID] = [
                     'title'     => $result->post_title,
                     'url'       => $result->guid,
-                    'thumbnail' => get_the_post_thumbnail_url((int)$result->ID),
+                    'thumbnail' => get_the_post_thumbnail_url((int)$result->ID) ? get_the_post_thumbnail_url((int)$result->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
                     'date'      => date('d M Y', strtotime($result->post_date)),
                     'author'    => $result->display_name,
                     'content'   => get_post_field('post_content', $result->ID)

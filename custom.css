@@ -206,12 +206,11 @@ html, body {
     font-size: 20px;
 }
 
-
-
 .aliceblogs-view-options {
     display: flex; 
-    justify-content: space-between; 
-    width: 50px;
+    /*justify-content: space-between; */
+    /*width: 50px;*/
+    height: 30px;
     color: var(--black);
 }
 
@@ -220,7 +219,22 @@ html, body {
 }
 
 .aliceblogs-view-active {
-    color: #666
+    filter: invert(.5);
+}
+
+#aliceblogs-view-mosaic {
+    width: 30px;
+    background-image: url('images/card_layout.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-right: 10px;
+}
+
+#aliceblogs-view-list {
+    width: 30px;
+    background-image: url('images/list_layout.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .aliceblogs-list {
