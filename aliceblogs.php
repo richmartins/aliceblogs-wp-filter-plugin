@@ -19,6 +19,7 @@ class Aliceblogs {
         add_action('wp_ajax_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_get_students', [$this, 'get_students']);
         add_action('wp_ajax_search_posts', [$this, 'search_posts']);
+        add_action('wp_ajax_get_most_used_tags', [$this, 'get_most_used_tags']);
         add_action('wp_ajax_nopriv_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_nopriv_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_nopriv_get_degrees', [$this, 'get_degrees']);
@@ -26,6 +27,7 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
         add_action('wp_ajax_nopriv_search_posts', [$this, 'search_posts']);
+        add_action('wp_ajax_nopriv_get_most_used_tags', [$this, 'get_most_used_tags']);
         add_action('init', [$this, 'remove_divi_projects']);
         add_action('admin_menu', [$this, 'remove_wp_comments']);
     }
@@ -259,6 +261,28 @@ class Aliceblogs {
 
             echo json_encode($results);
         }
+        die();
+    }
+
+    /**
+     * Return 5 most used tags
+     * 
+     * @return void
+     */
+    public function get_most_used_tags() {
+        $args = [
+            'taxonomy' => 'post_tag',
+            'orderby' => 'count',
+            'order' => 'DESC',
+            'number' => 5
+        ];
+
+        $tags = [];
+        foreach(get_terms($args) as $tag) {
+            $tags[$tag->slug] = $tag->name;
+        }
+
+        echo json_encode($tags);
         die();
     }
 }

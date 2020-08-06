@@ -101,24 +101,40 @@ jQuery(document).ready(function($){
           'action': 'get_years'
       }
       }).done(function(results) {
-      let years = JSON.parse(results)
-      
-      for (index in years) {
-        $('#aliceblogs-filter-year')
-        .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
-        .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
-        .append($('<br>'))
-      }
+        let years = JSON.parse(results)
+        
+        for (index in years) {
+          $('#aliceblogs-filter-year')
+          .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
+          .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
+          .append($('<br>'))
+        }
 
-      // auto select current year if exist in list & auto call get_degrees
-      let current_year = new Date().getFullYear()
-      selected_year_exist = years.find(year => year.name == current_year)
-      if (selected_year_exist) {
-        $('#year-' + selected_year_exist.term_id).attr('checked','checked')
-        get_degrees()
-      } else {
-        get_posts()
+        // auto select current year if exist in list & auto call get_degrees
+        let current_year = new Date().getFullYear()
+        selected_year_exist = years.find(year => year.name == current_year)
+        if (selected_year_exist) {
+          $('#year-' + selected_year_exist.term_id).attr('checked','checked')
+          get_degrees()
+        } else {
+          get_posts()
+        }
+    });
+
+    $.ajax({
+      url: url,
+      type: "POST",
+      data: {
+          'action': 'get_most_used_tags'
       }
+      }).done(function(results) {
+        let tags = JSON.parse(results)
+        html = ''
+        html += '<p id="aliceblogs-searchbar-proposal-title">Trends : </p>'
+        for(index in tags) {
+          html += '<div class="proposal-tag">' + tags[index] + '</div>'
+        }
+        $('#aliceblogs-searchbar-proposal').html(html)
     });
 
     function get_degrees() {
@@ -274,37 +290,49 @@ jQuery(document).ready(function($){
      };
     })();
 
+    function search_posts() {
+      $.ajax({
+        url: url,
+        type: "POST",
+        data: {
+          'action': 'search_posts',
+          'search_text': $('#aliceblogs-searchbar').val()
+        },
+        beforeSend: function() {
+          toggle_loader()
+        }
+      }).done(function(results) {
+        posts = JSON.parse(results)
+          toggle_loader()
+          render_posts()
+      });
+    }
+
     /** 
-     * Searchbar - hide filter when focus
+     * Hide filter when searchbar has text
      */
     $('#aliceblogs-searchbar').on('input', function() {
       if ($('#aliceblogs-searchbar').val() != '') {
          // query search
         $('#aliceblogs-filter').hide()
         delay(function(){
-          $.ajax({
-            url: url,
-            type: "POST",
-            data: {
-              'action': 'search_posts',
-              'search_text': $('#aliceblogs-searchbar').val()
-            },
-            beforeSend: function() {
-              toggle_loader()
-            }
-          }).done(function(results) {
-            posts = JSON.parse(results)
-              toggle_loader()
-              render_posts()
-          });
+          search_posts()
         }, 500 );
       } else {
-        // searchbar is empty : reset filter & show posts
+        // searchbar is empty : show/reset filter & show posts
         get_degrees()
         $('#aliceblogs-filter').show()
       }
     });
-
+    
+    /**
+     * Fill searchbar with clicked tag
+     */
+    $('.proposal-tag').live('click', function() {
+      $('#aliceblogs-searchbar').val($(this).text())
+      $('#aliceblogs-filter').hide()
+      search_posts()
+    })
 
     // from : https://github.com/jessekorzan/css-masonry/blob/master/app.js
     function reorder_mansory_layout_carddeck() {

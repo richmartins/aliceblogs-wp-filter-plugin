@@ -90,6 +90,31 @@ html, body {
     border-color: red;
 }
 
+#aliceblogs-searchbar-proposal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1em;
+}
+
+.proposal-tag {
+    margin-right: 1em;
+    border: 1px solid var(--grey);
+    padding: .3em;
+    margin-bottom: .3em;
+}
+
+.proposal-tag:hover {
+    cursor: pointer;
+    color: var(--black);
+    border: 1px solid var(--black)
+}
+
+#aliceblogs-searchbar-proposal-title {
+    margin-right: 1em;
+    font-size: 15px;
+}
+
 /* Divi - Stick footer to bottom */
 #page-container #et-boc {
     display: -webkit-box;
