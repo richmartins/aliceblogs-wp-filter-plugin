@@ -2,6 +2,11 @@ jQuery(document).ready(function($){
     let view_options = 'card'
     let posts = ''
 
+    $('#aliceblogs-filter-degrees-title').hide()
+    $('#aliceblogs-filter-elements-title').hide()
+    $('#aliceblogs-filter-studios-title').hide()
+    $('#aliceblogs-filter-students-title').hide()
+
     /**
      * Empty search field when clicked on browser back to last page button
      */
@@ -15,7 +20,6 @@ jQuery(document).ready(function($){
         $('#aliceblogs-view-mosaic').addClass("aliceblogs-view-active")
         view_options = 'card'
         render_posts();
-        reorder_mansory_layout_carddeck();
       }
     })
 
@@ -55,6 +59,7 @@ jQuery(document).ready(function($){
         
         if(view_options == 'card'){
           $('#aliceblogs-carddeck').html(html)
+          reorder_mansory_layout_carddeck();
         } else if (view_options == 'list'){
           $('#aliceblogs-listdeck').html(html)
         }
@@ -153,6 +158,10 @@ jQuery(document).ready(function($){
           $('#aliceblogs-filter-studios').empty()
           $('#aliceblogs-filter-students').empty()
           let degrees = JSON.parse(results)
+          $('#aliceblogs-filter-degrees-title').show()
+          $('#aliceblogs-filter-elements-title').hide()
+          $('#aliceblogs-filter-studios-title').hide()
+          $('#aliceblogs-filter-students-title').hide()
           for (index in degrees) {
               $('#aliceblogs-filter-degrees')
               .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
@@ -180,6 +189,11 @@ jQuery(document).ready(function($){
             $('#aliceblogs-filter-elements').empty()
             $('#aliceblogs-filter-studios').empty()
             $('#aliceblogs-filter-students').empty()
+
+            $('#aliceblogs-filter-elements-title').show()
+            $('#aliceblogs-filter-studios-title').hide()
+            $('#aliceblogs-filter-students-title').hide()
+
             let elements = JSON.parse(results)
             for (index in elements) {
                 $('#aliceblogs-filter-elements')
@@ -199,6 +213,7 @@ jQuery(document).ready(function($){
       $('#aliceblogs-filter-students').empty()
       if (elements_ids.length === 0) {
         get_posts(degree_id)
+        $('#aliceblogs-filter-studios-title').hide()
       } else {
         get_posts(elements_ids)
         
@@ -211,6 +226,8 @@ jQuery(document).ready(function($){
           }
         }).done(function(results) {
           $('#aliceblogs-filter-studios').empty()
+          $('#aliceblogs-filter-studios-title').show()
+          $('#aliceblogs-filter-students-title').hide()
             let studios = JSON.parse(results)
             for (index in studios) {
                 $('#aliceblogs-filter-studios')
@@ -233,6 +250,7 @@ jQuery(document).ready(function($){
       if (studios_names.length === 0) {
         get_posts(elements_ids)
         $('#aliceblogs-filter-students').empty()
+        $('#aliceblogs-filter-students-title').hide()
       } else {
         get_posts(elements_ids, studios_names)
         
@@ -245,13 +263,13 @@ jQuery(document).ready(function($){
           }
         }).done(function(results) {
           $('#aliceblogs-filter-students').empty()
-            let students = JSON.parse(results)
-            for (index in students) {
-                $('#aliceblogs-filter-students')
-                .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
-                .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
-                .append($('<br>'))
-            }
+          let students = JSON.parse(results)
+          $('#aliceblogs-filter-students-title').show()
+          for (index in students) {
+              $('#aliceblogs-filter-students')
+              .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
+              .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
+          }
         });
         
       }
