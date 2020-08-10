@@ -347,7 +347,7 @@ jQuery(document).ready(function($){
      * Fill searchbar with clicked tag
      */
     $('.proposal-tag').live('click', function() {
-      $('#aliceblogs-searchbar').val($(this).text())
+      $('#aliceblogs-searchbar').val($(this).text().substring(1))
       $('#aliceblogs-filter').hide()
       search_posts()
     })

@@ -126,20 +126,34 @@ body #login h1 a {
 
 .proposal-tag {
     margin-right: 1em;
-    border: 1px solid var(--grey);
-    padding: .3em;
-    margin-bottom: .3em;
 }
 
 .proposal-tag:hover {
     cursor: pointer;
-    color: var(--black);
-    border: 1px solid var(--black)
+    color: var(--red);
+    text-decoration: underline;
 }
 
 #aliceblogs-searchbar-proposal-title {
     margin-right: 1em;
     font-size: 15px;
+}
+
+#aliceblogs-post-tags-container {
+    margin-bottom: 2em;
+}
+
+.aliceblogs-post-tag:hover {
+    color: var(--red);
+    text-decoration: underline;
+}
+
+.aliceblogs-field-width {
+    width: 50% !important;
+}
+
+#aliceblogs-newuser-role {
+    padding: 1em;
 }
 
 /* Divi - Stick footer to bottom */

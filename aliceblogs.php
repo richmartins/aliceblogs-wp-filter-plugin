@@ -30,6 +30,8 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_most_used_tags', [$this, 'get_most_used_tags']);
         add_action('init', [$this, 'remove_divi_projects']);
         add_action('admin_menu', [$this, 'remove_wp_comments']);
+        add_filter('the_content', [$this, 'single_post_metadata']);
+        add_action('admin_menu', [$this, 'add_sidebar_menu_item']);
     }
 
     /**
@@ -55,6 +57,124 @@ class Aliceblogs {
      */
     public function remove_wp_comments() {
         remove_menu_page('edit-comments.php');
+    }
+
+    public function add_sidebar_menu_item() {
+        add_menu_page(
+            'AliceBlogs - Add User',
+            'AliceBlogs',
+            'manage_options',
+            'aliceblogs',
+            [$this, 'add_user_form'],
+            null,
+            20
+        );
+    }
+
+    public function add_user_form() {
+        global $wp_roles;
+        $roles = $wp_roles->roles;
+        $default_wp_roles = [
+            'administrator',
+            'editor',
+            'author',
+            'contributor',
+            'subscriber'
+        ];
+
+        $roles_ordered = [];
+        $years = [];
+        ?>
+        <h1>Ajouter un utilisateur</h1>
+        <h3>Créer un nouvel utilisateur et l'ajouter à ce site</h3>
+        <form method="post">
+            <table class="form-table">
+                <tbody>
+                    <tr class="form-field form-required">
+                        <th scope="row"><label for="user_login">Identifiant</label></th>
+                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
+                    </tr>
+                    <tr class="form-field form-required">
+                        <th scope="row"><label for="email">Adresse de messagerie</label></th>
+                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value=""></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="first_name">Prénom </label></th>
+                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value=""></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="last_name">Nom </label></th>
+                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value=""></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="last_name">Rôle utilisateur </label></th>
+                        <td>
+                            <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
+                                <?php
+                                $new_year_title = [];
+                                foreach($roles as $role_slug => $role) {
+                                    if (in_array($role_slug, $default_wp_roles)) {
+                                        continue;
+                                    }
+                                    if(!in_array(substr($role_slug, -4), $new_year_title)) {
+                                        array_push($new_year_title, substr($role_slug, -4));
+                                        ?>
+                                        <h3><?= substr($role_slug, -4) ?></h3>
+                                        <?php
+                                    }
+                                    ?>
+                                    <label><input type="radio" name="members_user_roles[]" value="<?= $role_slug ?>">
+                                    <?php echo $role['name'] ?>
+                                    </label><br>
+                                    <?php
+                                }
+                                ?>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="submit"><input type="submit" class="button button-primary" value="Ajouter un utilisateur"></p>
+        </form>
+        <h4>Le nouvel utilisateur recevra automatiquement un email avec ses identifiants de connexion ainsi qu'un mot de passe généré automatiquement qu'il pourra changer</h4>
+        <?php
+    }
+
+    /**
+     * Adds post tags below post content
+     */
+    function single_post_metadata($content) {
+        $author = get_the_author();
+        $user = get_userdata( get_the_author_meta('ID') );
+        $date = get_the_date('j/m/Y');
+        $categories = get_the_category();
+        $posttags = get_the_tags();
+
+        // getting studios (role of user) by author ID
+        global $wp_roles;                  // getting role name by role slug
+        $role_name = $wp_roles->role_names[get_role(get_userdata(get_the_author_meta('ID'))->roles[0])->name];
+
+        // Show post tags
+        if ($posttags) {
+            $tags_badges = [];
+            foreach($posttags as $tag) {
+                array_push($tags_badges,'<a class="aliceblogs-post-tag" href="/tag/' . $tag->slug . '/">#' . $tag->name . '</a>');
+            }
+            $tags = '<div id="aliceblogs-post-tags-container">' . implode(' ', $tags_badges) . '</div>';
+        }
+
+        // Show post categories
+        if ($categories) {
+            $cats_badges = '';
+            foreach ($categories as $category) {
+                $cats_badges .= $category->name;
+            }
+        }
+
+        /* Bulding post's meta data */
+        $content = 'par ' . $author . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . $content;
+
+        return $content;
     }
     
     /**
@@ -279,7 +399,7 @@ class Aliceblogs {
 
         $tags = [];
         foreach(get_terms($args) as $tag) {
-            $tags[$tag->slug] = $tag->name;
+            $tags[$tag->slug] = '#' . $tag->name;
         }
 
         echo json_encode($tags);
