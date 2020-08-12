@@ -313,6 +313,11 @@ body #login h1 a {
     text-align: justify;
 }
 
+.aliceblogos-notice {
+    margin-left: 0 !important;
+    width: 70%;
+}
+
 
 /***** LOADER *****/
 

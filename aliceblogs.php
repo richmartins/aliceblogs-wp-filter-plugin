@@ -32,6 +32,11 @@ class Aliceblogs {
         add_action('admin_menu', [$this, 'remove_wp_comments']);
         add_filter('the_content', [$this, 'single_post_metadata']);
         add_action('admin_menu', [$this, 'add_sidebar_menu_item']);
+        add_filter('wp_mail_from', [$this, 'wp_sender_email']);
+        add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
+        add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
+        add_action('admin_menu', [$this, 'remove_tools']);
+        add_action( 'init', [$this, 'hide_gutenberg_panels']);
     }
 
     /**
@@ -40,9 +45,22 @@ class Aliceblogs {
     public function load_scripts()
     {
         if (is_front_page()) {
-            wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/script.js', array ( 'jquery' ));
+            wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
+    }
+
+    public function hide_gutenberg_panels() {
+        // script file
+        wp_register_script(
+            'cc-block-script',
+            plugin_dir_url(__FILE__) .'/js/block-script.js', // adjust the path to the JS file
+            array( 'wp-blocks', 'wp-edit-post' )
+        );
+        // register block editor script
+        register_block_type( 'cc/ma-block-files', array(
+            'editor_script' => 'cc-block-script'
+        ) );
     }
 
     /**
@@ -51,7 +69,43 @@ class Aliceblogs {
     public function remove_divi_projects(){
         unregister_post_type('project');
     }
-    
+
+    /**
+     * Change default WP email
+     */
+    public function wp_sender_email() {
+        return 'no-reply@aliceblogs.ch';
+    }
+     
+    /**
+     * Change default WP email user name 
+     */
+    public function wp_sender_name() {
+        return 'AliceBlogs';
+    }
+
+    /**
+     * Hide WP Tools menu to non-admin
+     */
+    public function remove_tools() {
+        if (!current_user_can('administrator')) {
+            global $submenu;
+            //var_dump($submenu);
+            unset($submenu['tools.php'][5]);
+            if(count($submenu['tools.php']) == 0) {
+                remove_menu_page('tools.php');
+            }
+        }
+    }
+
+    // Remove WP admin dashboard widgets
+    public function disable_dashboard_widgets() {
+        remove_meta_box('dashboard_right_now', 'dashboard', 'normal'); // Remove "At a Glance"
+        //remove_meta_box('dashboard_activity', 'dashboard', 'normal'); // Remove "Activity" which includes "Recent Comments"
+        remove_meta_box('dashboard_quick_press', 'dashboard', 'side'); // Remove Quick Draft
+        remove_meta_box('dashboard_primary', 'dashboard', 'core'); // Remove WordPress Events and News
+    }
+
     /**
      * Remove WP Comments link on admin sidebar
      */
@@ -65,13 +119,59 @@ class Aliceblogs {
             'AliceBlogs',
             'manage_options',
             'aliceblogs',
-            [$this, 'add_user_form'],
+            [$this, 'dispatch'],
             null,
             20
         );
     }
 
-    public function add_user_form() {
+    public function dispatch() {
+        if (isset($_POST['user_login'])) {
+            self::register_new_user();
+        } else {
+            self::add_user_form();
+        }
+    }
+
+    /**
+     * Verfiy form fields & insert user in DB & send new user email
+     */
+    public function register_new_user() {
+        if (!empty($_POST['user_login']) && !empty($_POST['email']) && is_email($_POST['email']) && !empty($_POST['first_name']) 
+            && !empty($_POST['last_name']) && !empty($_POST['members_user_roles'] )) {
+            $userdata = [
+                'user_login'    =>  $_POST['user_login'],
+                'user_email'    =>  $_POST['email'],
+                'user_pass'     =>  wp_generate_password(20),
+                'first_name'    =>  $_POST['first_name'],
+                'last_name'     =>  $_POST['last_name'],
+                'role'          =>  $_POST['members_user_roles']
+            ];
+
+            $message = 'Bonjour ' . $_POST['first_name'] . ', <br><br>Votre compte sur Aliceblogs vient d\'être créé. <br><br> Pour vous y connecter voici vos informations d\'identification : <br><br> Nom d\'utilisateur : ' 
+                        . $_POST['user_login'] . '<br> Mot de passe : ' . $userdata['user_pass'] . '<br> Connexion au site : ' . wp_login_url() . '<br><br>Une fois connecté vous aurez la possibilité de changer votre mot de passe dans les réglages de votre compte. 
+                        <br><br>Merci <br><br> EPFL Alice';
+            
+            $result = wp_insert_user($userdata);
+            if ($result instanceof WP_Error) {
+                // WP error
+                self::add_user_form(false, $result->get_error_message());
+            } else {
+                // Create user
+                wp_mail($_POST['email'], 'Bienvenue sur Aliceblogs', $message, ['Content-Type: text/html; charset=UTF-8']);
+                $_POST = [];
+                self::add_user_form(true);
+            }
+        } else {
+            // empty fields
+            self::add_user_form(false, 'Merci de bien vouloir remplir tous les champs');
+        }
+    }
+
+    /**
+     * Custom add user form
+     */
+    public function add_user_form($valid = null, $message = '') {
         global $wp_roles;
         $roles = $wp_roles->roles;
         $default_wp_roles = [
@@ -84,6 +184,24 @@ class Aliceblogs {
 
         $roles_ordered = [];
         $years = [];
+
+        // Show status message
+        if ($valid){
+            ?>
+            <div class="notice notice-success is-dismissible aliceblogos-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>L'utilisateur a bien été ajouté</p>
+            </div>
+            <?php
+        } else if ($valid === false) { 
+            ?>
+            <div class="notice notice-error is-dismissible aliceblogos-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Une erreur s'est produite. <?= $message ?></p>
+            </div>
+            <?php
+        }
+
         ?>
         <h1>Ajouter un utilisateur</h1>
         <h3>Créer un nouvel utilisateur et l'ajouter à ce site</h3>
@@ -92,22 +210,22 @@ class Aliceblogs {
                 <tbody>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="user_login">Identifiant</label></th>
-                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
+                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="<?= $_POST['user_login'] ?>" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
                     </tr>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="email">Adresse de messagerie</label></th>
-                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value=""></td>
+                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value="<?= $_POST['email'] ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="first_name">Prénom </label></th>
-                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value=""></td>
+                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= $_POST['first_name'] ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="last_name">Nom </label></th>
-                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value=""></td>
+                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= $_POST['last_name'] ?>"></td>
                     </tr>
                     <tr class="form-field">
-                        <th scope="row"><label for="last_name">Rôle utilisateur </label></th>
+                        <th scope="row"><label>Rôle utilisateur </label></th>
                         <td>
                             <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
                                 <?php
@@ -123,9 +241,17 @@ class Aliceblogs {
                                         <?php
                                     }
                                     ?>
-                                    <label><input type="radio" name="members_user_roles[]" value="<?= $role_slug ?>">
-                                    <?php echo $role['name'] ?>
-                                    </label><br>
+                                   <label>
+                                        <?php
+                                        if (isset($_POST['members_user_roles']) && $role_slug == $_POST['members_user_roles']) {
+                                            echo '<input type="radio" name="members_user_roles" value="' . $role_slug . '" checked >';
+                                        } else {
+                                            echo '<input type="radio" name="members_user_roles" value="' . $role_slug . '">';
+                                        }
+                                        ?>
+                                        <?php echo $role['name'] ?>
+                                    </label>
+                                    <br>
                                     <?php
                                 }
                                 ?>
