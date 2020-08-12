@@ -270,6 +270,11 @@ class Aliceblogs {
      * Adds post tags below post content
      */
     function single_post_metadata($content) {
+
+        if (get_post_type() != 'post') {
+            return $content;
+        }
+
         $author = get_the_author();
         $user = get_userdata( get_the_author_meta('ID') );
         $date = get_the_date('j/m/Y');
@@ -298,7 +303,7 @@ class Aliceblogs {
         }
 
         /* Bulding post's meta data */
-        $content = 'par ' . $author . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . $content;
+        $content = 'par ' . $author . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . '<br><br>' . $content;
 
         return $content;
     }

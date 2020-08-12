@@ -318,6 +318,22 @@ body #login h1 a {
     width: 70%;
 }
 
+#aliceblogs-404-title {
+    font-size: 70px;
+    font-weight: bold;
+    margin-top: 2em;
+}
+
+#aliceblogs-404-subtitle {
+    font-size: 36px;
+    color: #999;
+    margin-top: 1.5em;
+}
+
+#aliceblogs-404-home {
+    font-size: 16px;
+    margin-top: 3em;
+}
 
 /***** LOADER *****/
 
