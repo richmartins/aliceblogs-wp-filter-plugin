@@ -119,15 +119,147 @@ class Aliceblogs {
     }
 
     public function add_sidebar_menu_item() {
-        add_menu_page(
-            'AliceBlogs - Add User',
-            'AliceBlogs',
-            'manage_options',
-            'aliceblogs',
-            [$this, 'dispatch'],
-            null,
-            20
-        );
+        add_menu_page('AliceBlogs', 'AliceBlogs', 'manage_options', 'aliceblogs', [$this, 'aliceblogs_page_home'], NULL, 20);
+        add_submenu_page('aliceblogs', 'Add User', 'Add User', 'manage_options', 'add-user', [$this, 'dispatch']);
+        add_submenu_page('aliceblogs', 'Edit User', 'Edit User', 'manage_options', 'edit-user', [$this, 'aliceblogs_edit_user']);
+    }
+
+    /**
+     * Plugin Home Page
+     */
+    public function aliceblogs_page_home() {
+     ?>
+     <h1>Gestion des utilisateurs AliceBlogs</h1>
+     <h3>Créez et modifiez les utilisateurs</h3>
+     <div id="aliceblogs-page-home">
+        <p class="submit"><a href="<?= admin_url('admin.php?page=add-user') ?>" class="button button-primary">Ajouter un utilisateur</a></p>
+        <p class="submit"><a href="<?= admin_url('admin.php?page=edit-user') ?>" class="button button-primary">Modifier un utilisateur</a></p>
+     </div>
+     <?php
+    }
+
+    /**
+     * Custom edit user page
+     */
+    public function aliceblogs_edit_user() {
+        if(isset($_POST['first_name'])){
+            if(!empty($_POST['first_name']) && !empty($_POST['last_name']) && !empty($_POST['members_user_roles'])){
+                //save to db
+                wp_update_user([
+                    'ID' => $_POST['ID'], 
+                    'first_name' => $_POST['first_name'],
+                    'last_name' => $_POST['last_name'],
+                    'display_name' => $_POST['first_name'] . ' ' . $_POST['last_name']
+                ]);
+
+                $user = get_user_by('ID', $_POST['ID']);
+                foreach($user->roles as $role) {
+                    $user->remove_role($role);
+                }
+                foreach($_POST['members_user_roles'] as $role) {
+                    $user->add_role($role);
+                }
+
+                ?>
+                    <div class="notice notice-success is-dismissible aliceblogos-notice">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>L'utilisateur a bien été modifié</p>
+                    </div>
+                <?php
+                } else {
+                ?>
+                    <div class="notice notice-error is-dismissible aliceblogos-notice">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Merci de bien vouloir remplir tous les champs</p>
+                    </div>
+                <?php 
+            }
+        }
+        ?>
+        <h1>Edit User page</h1>
+        <form action="" method="post">
+            <select name="user-edit">
+                <?php 
+                    foreach(get_users() as $user) {
+                        if(isset($_POST['user-edit']) && $_POST['user-edit'] == $user->ID){
+                            echo '<option value="' . $user->ID .'" selected >' . $user->display_name . ' (' . $user->user_login . ')' . '</option>';
+                        } else {
+                            echo '<option value="' . $user->ID .'">' . $user->display_name . ' (' . $user->user_login . ')' . '</option>';
+                        }
+                    }
+                ?>
+            </select>
+            <input class="button button-primary" type="submit" value="Charger"/>
+        </form>
+        <?php
+        if(isset($_POST['user-edit'])) {
+            $user = get_userdata($_POST['user-edit']);
+            global $wp_roles;
+            $roles = $wp_roles->roles;
+            $default_wp_roles = [
+                'administrator',
+                'editor',
+                'author',
+                'contributor',
+                'subscriber'
+            ];
+
+            $users_roles = $user->roles;
+        ?>
+        <form method="post">
+            <table class="form-table">
+                <tbody>
+                    <tr class="form-field">
+                        <th scope="row"><label for="first_name">Prénom </label></th>
+                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= $user->first_name ?>"></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="last_name">Nom </label></th>
+                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= $user->last_name ?>"></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label>Rôle utilisateur </label></th>
+                        <td>
+                            <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
+                                <?php
+                                $new_year_title = [];
+                                foreach($roles as $role_slug => $role) {
+                                    if (in_array($role_slug, $default_wp_roles)) {
+                                        continue;
+                                    }
+                                    if(!in_array(substr($role_slug, -4), $new_year_title)) {
+                                        array_push($new_year_title, substr($role_slug, -4));
+                                        $degree = explode('-', $role_slug)[2];
+                                        $year = explode('-', $role_slug)[1];
+                                        ?>
+                                        <h3><?= $year . ' ' . $degree ?></h3>
+                                        <?php
+                                    }
+                                    ?>
+                                   <label>
+                                        <?php
+                                        if (in_array($role_slug, $users_roles)) {
+                                            echo '<input type="checkbox" name="members_user_roles[]" value="' . $role_slug . '" checked >';
+                                        } else {
+                                            echo '<input type="checkbox" name="members_user_roles[]" value="' . $role_slug . '">';
+                                        }
+                                        ?>
+                                        <?php echo $role['name'] ?>
+                                    </label>
+                                    <br>
+                                    <?php
+                                }
+                                ?>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="submit"><input type="submit" class="button button-primary" value="Modifier"></p>
+            <input type="hidden" name="ID" value= <?= $_POST['user-edit']?>>
+        </form>
+        <?php
+        }
     }
 
     public function dispatch() {
@@ -241,8 +373,10 @@ class Aliceblogs {
                                     }
                                     if(!in_array(substr($role_slug, -4), $new_year_title)) {
                                         array_push($new_year_title, substr($role_slug, -4));
+                                        $degree = explode('-', $role_slug)[2];
+                                        $year = explode('-', $role_slug)[1];
                                         ?>
-                                        <h3><?= substr($role_slug, -4) ?></h3>
+                                        <h3><?= $year . ' ' . $degree ?></h3>
                                         <?php
                                     }
                                     ?>
