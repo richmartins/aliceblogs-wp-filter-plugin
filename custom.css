@@ -335,6 +335,16 @@ body #login h1 a {
     margin-top: 3em;
 }
 
+#aliceblogs-metabox-categories-title {
+    font-weight: bold !important;
+    font-size: 1.3em !important;
+    padding-left: 0 !important;
+}
+
+.aliceblogs-metabox-category {
+    font-size: 16px;
+}
+
 /***** LOADER *****/
 
 #container-loader {

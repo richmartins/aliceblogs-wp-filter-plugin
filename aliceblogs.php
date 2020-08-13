@@ -36,7 +36,9 @@ class Aliceblogs {
         add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
         add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
         add_action('admin_menu', [$this, 'remove_tools']);
-        add_action( 'init', [$this, 'hide_gutenberg_panels']);
+        add_action('init', [$this, 'hide_gutenberg_panels']);
+        add_action('add_meta_boxes', [$this, 'add_categories_metabox']);
+        add_action('save_post', [$this, 'save_categories_metabox']);
     }
 
     /**
@@ -50,17 +52,22 @@ class Aliceblogs {
         }
     }
 
+    /**
+     * Hide Gutenberg panels for non-admin
+     */
     public function hide_gutenberg_panels() {
-        // script file
-        wp_register_script(
-            'cc-block-script',
-            plugin_dir_url(__FILE__) .'/js/block-script.js', // adjust the path to the JS file
-            array( 'wp-blocks', 'wp-edit-post' )
-        );
-        // register block editor script
-        register_block_type( 'cc/ma-block-files', array(
-            'editor_script' => 'cc-block-script'
-        ) );
+        if (!current_user_can('administrator')) {
+            // script file
+            wp_register_script(
+                'cc-block-script',
+                plugin_dir_url(__FILE__) .'/js/block-script.js', // adjust the path to the JS file
+                array( 'wp-blocks', 'wp-edit-post' )
+            );
+            // register block editor script
+            register_block_type( 'cc/ma-block-files', array(
+                'editor_script' => 'cc-block-script'
+            ) );
+        }
     }
 
     /**
@@ -90,11 +97,8 @@ class Aliceblogs {
     public function remove_tools() {
         if (!current_user_can('administrator')) {
             global $submenu;
-            //var_dump($submenu);
             unset($submenu['tools.php'][5]);
-            if(count($submenu['tools.php']) == 0) {
-                remove_menu_page('tools.php');
-            }
+            remove_menu_page('tools.php');
         }
     }
 
@@ -263,6 +267,77 @@ class Aliceblogs {
             <p class="submit"><input type="submit" class="button button-primary" value="Ajouter un utilisateur"></p>
         </form>
         <h4>Le nouvel utilisateur recevra automatiquement un email avec ses identifiants de connexion ainsi qu'un mot de passe généré automatiquement qu'il pourra changer</h4>
+        <?php
+    }
+
+     /**
+     * Create categories metabox 
+     */
+    public function add_categories_metabox() {
+        $screens = ['post'];
+        foreach ($screens as $screen) {
+            add_meta_box(
+                'categories-box',           
+                'Choisir une catégorie',  
+                [$this, 'categories_metabox_content'],  
+                $screen,                   
+                'side'
+            );
+        }
+    }
+
+    /**
+     * Categories metabox - save data
+     */
+    public function save_categories_metabox($post_id) {
+        if (array_key_exists('aliceblogs-categories', $_POST)) {
+            wp_set_post_categories($post_id, $_POST['aliceblogs-categories']);
+        }
+    }
+
+    /**
+     * Categories metabox content
+     */
+    public function categories_metabox_content($post) {
+        // getting studios (role of user) by author ID
+        $role_slug = get_userdata($post->post_author)->roles[0];
+        // Find category with this pattern "degree-year" : y1-2020 or y5-2019
+        $degree = explode('-', $role_slug)[2];
+        $year = explode('-', $role_slug)[1];
+        $year_category = get_category_by_slug($degree . '-' . $year)->term_id;
+
+        $args = [
+            'hide_empty'               => FALSE,
+            'hierarchical'             => 1,
+            'taxonomy'                 => 'category',
+            'child_of'                 => $year_category,
+        ];
+
+        ?>
+        <div>
+            <h2 id="aliceblogs-metabox-categories-title"><?= $year . ' - ' . $degree ?></h2>
+            <?php
+            $parents = [];
+
+            // Find child categories to degree-year cat
+            $categories = get_categories($args);
+            // Get post category 
+            $post_category = get_the_category($post->ID);
+            foreach($categories as $category) {
+                // autoselected post category
+                $checked = '';
+                if ($category->slug == $post_category[0]->slug) {
+                    $checked = 'checked';
+                }
+                ?>
+                <div>
+                    <input id="<?= $category->slug ?>" type="radio" value="<?= $category->term_id ?>" name="aliceblogs-categories[]" <?= $checked ?>>
+                    <label class="aliceblogs-metabox-category" for="<?= $category->slug ?>"><?= $category->name ?></label>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
 
