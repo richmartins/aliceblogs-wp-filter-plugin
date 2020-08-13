@@ -6,6 +6,7 @@
  */
 
 defined('ABSPATH' ) or die( 'No script kiddies please!' );
+require_once dirname( __FILE__ ) . '/aliceblogs-disable-user.php';
 
 class Aliceblogs {
     public function __construct(){
