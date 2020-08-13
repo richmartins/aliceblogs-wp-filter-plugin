@@ -120,8 +120,8 @@ class Aliceblogs {
 
     public function add_sidebar_menu_item() {
         add_menu_page('AliceBlogs', 'AliceBlogs', 'manage_options', 'aliceblogs', [$this, 'aliceblogs_page_home'], NULL, 20);
-        add_submenu_page('aliceblogs', 'Add User', 'Add User', 'manage_options', 'add-user', [$this, 'dispatch']);
-        add_submenu_page('aliceblogs', 'Edit User', 'Edit User', 'manage_options', 'edit-user', [$this, 'aliceblogs_edit_user']);
+        add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'manage_options', 'add-user', [$this, 'dispatch']);
+        add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'manage_options', 'edit-user', [$this, 'aliceblogs_edit_user']);
     }
 
     /**
@@ -176,7 +176,7 @@ class Aliceblogs {
             }
         }
         ?>
-        <h1>Edit User page</h1>
+        <h1>Modifier un utilisateur</h1>
         <form action="" method="post">
             <select name="user-edit">
                 <?php 
