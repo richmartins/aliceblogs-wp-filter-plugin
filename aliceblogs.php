@@ -10,7 +10,6 @@ require_once dirname( __FILE__ ) . '/aliceblogs-disable-user.php';
 
 class Aliceblogs {
 
-
     const default_wp_roles = [
         'administrator',
         'editor',
@@ -780,16 +779,22 @@ class Aliceblogs {
                 global $wp_roles;
 
                 $author_id = get_post_field('post_author', $post->ID);
-                $role_slug = get_role(get_userdata($author_id)->roles[0])->name;
+                $user_roles = get_userdata($author_id)->roles;
 
-                // Exclude the default WP roles to prevent them from appearing in the filter. 
-                if (in_array($role_slug, self::default_wp_roles)) {
-                    continue;
+                // loop on all user roles
+                foreach($user_roles as $role) {
+                    $role_slug = get_role($role)->name;
+                    $role_name = $wp_roles->role_names[$role_slug];
+
+                    // Exclude the default WP roles to prevent them from appearing in the filter. 
+                    if (in_array($role_slug, self::default_wp_roles)) {
+                        continue;
+                    }
+                    
+                    $roles[$role_slug] = $role_name;
                 }
-
-                $role_name = $wp_roles->role_names[$role_slug];
-                $roles[$role_slug] = $role_name;
             }
+
             echo json_encode($roles);
         }
         die();
