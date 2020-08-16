@@ -122,6 +122,7 @@ class Aliceblogs {
         add_menu_page('AliceBlogs', 'AliceBlogs', 'manage_options', 'aliceblogs', [$this, 'aliceblogs_page_home'], NULL, 20);
         add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'manage_options', 'add-user', [$this, 'dispatch']);
         add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'manage_options', 'edit-user', [$this, 'aliceblogs_edit_user']);
+        add_submenu_page('aliceblogs', 'Studio', 'Studio', 'manage_options', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
     }
 
     /**
@@ -134,8 +135,68 @@ class Aliceblogs {
      <div id="aliceblogs-page-home">
         <p class="submit"><a href="<?= admin_url('admin.php?page=add-user') ?>" class="button button-primary">Ajouter un utilisateur</a></p>
         <p class="submit"><a href="<?= admin_url('admin.php?page=edit-user') ?>" class="button button-primary">Modifier un utilisateur</a></p>
+        <p class="submit"><a href="<?= admin_url('admin.php?page=add-studio') ?>" class="button button-primary">Ajouter un studio</a></p>
      </div>
      <?php
+    }
+
+    /**
+     * Render checkbox/input list with all roles sorted by year & degree
+     */
+    public function render_roles_list($type = 'checkbox', $checked = '') {
+        global $wp_roles;
+        $roles = $wp_roles->roles;
+        $default_wp_roles = [
+            'administrator',
+            'editor',
+            'author',
+            'contributor',
+            'subscriber'
+        ];
+
+        // Order roles by year
+        $sorted_roles = [];
+        foreach($roles as $role_slug => $role) {
+            if (in_array($role_slug, $default_wp_roles)) {
+                continue;
+            }
+            $sorted_roles[explode('-', $role_slug)[1]][explode('-', $role_slug)[2]][] = [
+                'slug' =>$role_slug,
+                'name' => $role['name']
+            ];
+        }
+
+        // sort by year DESC
+        krsort($sorted_roles);
+        
+        // display role
+        // loop years
+        foreach($sorted_roles as $year => $roles) {
+            echo '<h2>' . $year .'</h2>';
+            // sort by degree
+            ksort($roles);
+            // loop degrees
+            foreach($roles as $degree => $roles_per_year) {
+                echo '<h2>' . $degree .'</h2>';
+                // loop roles
+                foreach($roles_per_year as $role) {
+                    ?>
+                    <label>
+                        <?php
+                        if (is_array($checked) && in_array($role['slug'], $checked)) {
+                            echo '<input type="' . $type . '" name="members_user_roles[]" value="' . $role['slug'] . '" checked >';
+                        } else {
+                            echo '<input type="' . $type . '" name="members_user_roles[]" value="' . $role['slug'] . '">';
+                        }
+                        echo $role['name'];
+                        ?>
+                    </label>
+                    <br>
+                    <?php
+                }
+            }
+        }
+
     }
 
     /**
@@ -181,6 +242,9 @@ class Aliceblogs {
             <select name="user-edit">
                 <?php 
                     foreach(get_users() as $user) {
+                        if (user_can( $user->ID, 'manage_options' )) {
+                            continue;
+                        }
                         if(isset($_POST['user-edit']) && $_POST['user-edit'] == $user->ID){
                             echo '<option value="' . $user->ID .'" selected >' . $user->display_name . ' (' . $user->user_login . ')' . '</option>';
                         } else {
@@ -194,17 +258,6 @@ class Aliceblogs {
         <?php
         if(isset($_POST['user-edit'])) {
             $user = get_userdata($_POST['user-edit']);
-            global $wp_roles;
-            $roles = $wp_roles->roles;
-            $default_wp_roles = [
-                'administrator',
-                'editor',
-                'author',
-                'contributor',
-                'subscriber'
-            ];
-
-            $users_roles = $user->roles;
         ?>
         <form method="post">
             <table class="form-table">
@@ -222,33 +275,7 @@ class Aliceblogs {
                         <td>
                             <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
                                 <?php
-                                $new_year_title = [];
-                                foreach($roles as $role_slug => $role) {
-                                    if (in_array($role_slug, $default_wp_roles)) {
-                                        continue;
-                                    }
-                                    if(!in_array(substr($role_slug, -4), $new_year_title)) {
-                                        array_push($new_year_title, substr($role_slug, -4));
-                                        $degree = explode('-', $role_slug)[2];
-                                        $year = explode('-', $role_slug)[1];
-                                        ?>
-                                        <h3><?= $year . ' ' . $degree ?></h3>
-                                        <?php
-                                    }
-                                    ?>
-                                   <label>
-                                        <?php
-                                        if (in_array($role_slug, $users_roles)) {
-                                            echo '<input type="checkbox" name="members_user_roles[]" value="' . $role_slug . '" checked >';
-                                        } else {
-                                            echo '<input type="checkbox" name="members_user_roles[]" value="' . $role_slug . '">';
-                                        }
-                                        ?>
-                                        <?php echo $role['name'] ?>
-                                    </label>
-                                    <br>
-                                    <?php
-                                }
+                                self::render_roles_list('checkbox', $user->roles);
                                 ?>
                             </div>
                         </td>
@@ -260,6 +287,91 @@ class Aliceblogs {
         </form>
         <?php
         }
+    }
+
+    public function aliceblogs_add_studio_dispatch() {
+        if (isset($_POST['role_name'])) {
+            self::register_new_studio();
+        } else {
+            self::add_studio_form();
+        }
+    }
+
+    public function register_new_studio() {
+        if (!empty($_POST['role_name']) && !empty($_POST['role_year']) && !empty($_POST['role_degree'])) {
+            $default_capabilities = [
+                'read' => true,
+                'edit_posts' => true,
+                'upload_files' => true,
+                'delete_posts' => true,
+                'publish_posts' => true,
+                'delete_published_posts' => true,
+                'edit_published_posts' => true
+            ];
+
+            $role_name = $_POST['role_name'];
+            $role_slug = strtolower(str_replace(' ', '_', $_POST['role_name'])) . '-' . $_POST['role_year'] . '-' . strtolower($_POST['role_degree']);
+            
+            $result = add_role($role_slug, $role_name, $default_capabilities);
+            if ($result instanceof WP_Role) {
+                $_POST = [];
+                self::add_studio_form(true);
+            } else {
+                self::add_studio_form(false, 'Une erreur est survenue, merci de bien vouloir réessayer');
+            }
+            
+        } else {
+            self::add_studio_form(false, 'Merci de bien vouloir remplir tous les champs');
+        }
+    }
+
+    /**
+     * New studio html page
+     */
+    public function add_studio_form($valid = null, $message = '') {
+        if ($valid){
+            ?>
+            <div class="notice notice-success is-dismissible aliceblogos-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Le studio a bien été ajouté</p>
+            </div>
+            <?php
+        } else if ($valid === false) { 
+            ?>
+            <div class="notice notice-error is-dismissible aliceblogos-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Une erreur s'est produite. <?= $message ?></p>
+            </div>
+            <?php
+        }
+        ?>
+        <h1>Ajouter un studio</h1>
+        <form method="post">
+            <table class="form-table">
+                <tbody>
+                    <tr class="form-field">
+                        <th scope="row"><label for="role_name">Nom du studio </label></th>
+                        <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= $_POST['role_name'] ?>" placeholder="ex: Studio ALICE"></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="role_year">Année </label></th>
+                        <td><input name="role_year" class="aliceblogs-field-width" type="text" id="role_year" value="<?= $_POST['role_year'] ?>" placeholder="ex: <?= date('Y') ?>"></td>
+                    </tr>
+                    <tr class="form-field">
+                        <th scope="row"><label for="role_degree">Degré </label></th>
+                        <td>
+                            <select name="role_degree" id="role_degree">
+                                <option>Y1</option>
+                                <option>Y5</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="submit"><input type="submit" class="button button-primary" value="Créer le studio"></p>
+            <h4>Une fois le studio créé, vous aurez la possibilité d'y ajouter des membres</h4>
+        </form>
+        <?php
     }
 
     public function dispatch() {
@@ -274,26 +386,30 @@ class Aliceblogs {
      * Verfiy form fields & insert user in DB & send new user email
      */
     public function register_new_user() {
+
         if (!empty($_POST['user_login']) && !empty($_POST['email']) && is_email($_POST['email']) && !empty($_POST['first_name']) 
-            && !empty($_POST['last_name']) && !empty($_POST['members_user_roles'] )) {
+            && !empty($_POST['last_name']) && !empty($_POST['members_user_roles'])) {
             $userdata = [
                 'user_login'    =>  $_POST['user_login'],
                 'user_email'    =>  $_POST['email'],
                 'user_pass'     =>  wp_generate_password(20),
                 'first_name'    =>  $_POST['first_name'],
                 'last_name'     =>  $_POST['last_name'],
-                'role'          =>  $_POST['members_user_roles']
+                'role'          =>  $_POST['members_user_roles'][0]
             ];
 
             $message = 'Bonjour ' . $_POST['first_name'] . ', <br><br>Votre compte sur Aliceblogs vient d\'être créé. <br><br> Pour vous y connecter voici vos informations d\'identification : <br><br> Nom d\'utilisateur : ' 
                         . $_POST['user_login'] . '<br> Mot de passe : ' . $userdata['user_pass'] . '<br> Connexion au site : ' . wp_login_url() . '<br><br>Une fois connecté vous aurez la possibilité de changer votre mot de passe dans les réglages de votre compte. 
                         <br><br>Merci <br><br> EPFL Alice';
             
+            var_dump($userdata);
+
             $result = wp_insert_user($userdata);
             if ($result instanceof WP_Error) {
                 // WP error
                 self::add_user_form(false, $result->get_error_message());
             } else {
+                var_dump($result);
                 // Create user
                 wp_mail($_POST['email'], 'Bienvenue sur Aliceblogs', $message, ['Content-Type: text/html; charset=UTF-8']);
                 $_POST = [];
@@ -366,33 +482,7 @@ class Aliceblogs {
                         <td>
                             <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
                                 <?php
-                                $new_year_title = [];
-                                foreach($roles as $role_slug => $role) {
-                                    if (in_array($role_slug, $default_wp_roles)) {
-                                        continue;
-                                    }
-                                    if(!in_array(substr($role_slug, -4), $new_year_title)) {
-                                        array_push($new_year_title, substr($role_slug, -4));
-                                        $degree = explode('-', $role_slug)[2];
-                                        $year = explode('-', $role_slug)[1];
-                                        ?>
-                                        <h3><?= $year . ' ' . $degree ?></h3>
-                                        <?php
-                                    }
-                                    ?>
-                                   <label>
-                                        <?php
-                                        if (isset($_POST['members_user_roles']) && $role_slug == $_POST['members_user_roles']) {
-                                            echo '<input type="radio" name="members_user_roles" value="' . $role_slug . '" checked >';
-                                        } else {
-                                            echo '<input type="radio" name="members_user_roles" value="' . $role_slug . '">';
-                                        }
-                                        ?>
-                                        <?php echo $role['name'] ?>
-                                    </label>
-                                    <br>
-                                    <?php
-                                }
+                                self::render_roles_list('radio', $_POST['members_user_roles']);
                                 ?>
                             </div>
                         </td>
