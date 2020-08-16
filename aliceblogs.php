@@ -9,6 +9,17 @@ defined('ABSPATH' ) or die( 'No script kiddies please!' );
 require_once dirname( __FILE__ ) . '/aliceblogs-disable-user.php';
 
 class Aliceblogs {
+
+
+    const default_wp_roles = [
+        'administrator',
+        'editor',
+        'author',
+        'contributor',
+        'subscriber',
+        'aliceblogs_teacher'
+    ];
+
     public function __construct(){
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
@@ -40,6 +51,7 @@ class Aliceblogs {
         add_action('init', [$this, 'hide_gutenberg_panels']);
         add_action('add_meta_boxes', [$this, 'add_categories_metabox']);
         add_action('save_post', [$this, 'save_categories_metabox']);
+        add_action('admin_init', [$this, 'create_teacher_role']);
     }
 
     /**
@@ -119,10 +131,10 @@ class Aliceblogs {
     }
 
     public function add_sidebar_menu_item() {
-        add_menu_page('AliceBlogs', 'AliceBlogs', 'manage_options', 'aliceblogs', [$this, 'aliceblogs_page_home'], NULL, 20);
-        add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'manage_options', 'add-user', [$this, 'dispatch']);
-        add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'manage_options', 'edit-user', [$this, 'aliceblogs_edit_user']);
-        add_submenu_page('aliceblogs', 'Studio', 'Studio', 'manage_options', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
+        add_menu_page('AliceBlogs', 'AliceBlogs', 'aliceblogs_manage', 'aliceblogs', [$this, 'aliceblogs_page_home'], NULL, 20);
+        add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'aliceblogs_manage', 'add-user', [$this, 'dispatch']);
+        add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'aliceblogs_manage', 'edit-user', [$this, 'aliceblogs_edit_user']);
+        add_submenu_page('aliceblogs', 'Studio', 'Studio', 'aliceblogs_manage', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
     }
 
     /**
@@ -130,8 +142,8 @@ class Aliceblogs {
      */
     public function aliceblogs_page_home() {
      ?>
-     <h1>Gestion des utilisateurs AliceBlogs</h1>
-     <h3>Créez et modifiez les utilisateurs</h3>
+     <h1>Page de gestion AliceBlogs</h1>
+     <h3>Créez et modifiez les utilisateurs et les studios</h3>
      <div id="aliceblogs-page-home">
         <p class="submit"><a href="<?= admin_url('admin.php?page=add-user') ?>" class="button button-primary">Ajouter un utilisateur</a></p>
         <p class="submit"><a href="<?= admin_url('admin.php?page=edit-user') ?>" class="button button-primary">Modifier un utilisateur</a></p>
@@ -146,18 +158,11 @@ class Aliceblogs {
     public function render_roles_list($type = 'checkbox', $checked = '') {
         global $wp_roles;
         $roles = $wp_roles->roles;
-        $default_wp_roles = [
-            'administrator',
-            'editor',
-            'author',
-            'contributor',
-            'subscriber'
-        ];
 
         // Order roles by year
         $sorted_roles = [];
         foreach($roles as $role_slug => $role) {
-            if (in_array($role_slug, $default_wp_roles)) {
+            if (in_array($role_slug, self::default_wp_roles)) {
                 continue;
             }
             $sorted_roles[explode('-', $role_slug)[1]][explode('-', $role_slug)[2]][] = [
@@ -200,6 +205,30 @@ class Aliceblogs {
     }
 
     /**
+     * Register Teacher role
+     */
+    public function create_teacher_role() {
+        $default_capabilities = [
+            'read' => true,
+            'edit_posts' => true,
+            'upload_files' => true,
+            'delete_posts' => true,
+            'publish_posts' => true,
+            'read_private_posts' => true,
+            'delete_published_posts' => true,
+            'delete_others_posts' => true,
+            'delete_private_posts' => true,
+            'edit_published_posts' => true,
+            'edit_others_posts' => true,
+            'edit_private_posts' => true,
+            'aliceblogs_manage' => true,
+            'manage_categories' => true
+        ];
+
+        add_role('aliceblogs_teacher', 'Teacher', $default_capabilities);
+    }
+
+    /**
      * Custom edit user page
      */
     public function aliceblogs_edit_user() {
@@ -220,6 +249,14 @@ class Aliceblogs {
                 foreach($_POST['members_user_roles'] as $role) {
                     $user->add_role($role);
                 }
+
+                // disable user
+                if (!isset($_POST['aliceblogs_disable_user'])) {
+                    $disabled = 0;
+                } else {
+                    $disabled = $_POST['aliceblogs_disable_user'];
+                }
+                update_user_meta($user->ID, 'aliceblogs_disable_user', $disabled);
 
                 ?>
                     <div class="notice notice-success is-dismissible aliceblogos-notice">
@@ -245,6 +282,12 @@ class Aliceblogs {
                         if (user_can( $user->ID, 'manage_options' )) {
                             continue;
                         }
+                        
+                        $role_slug = get_userdata($user->ID)->roles[0];
+                        if (in_array($role_slug, self::default_wp_roles)) {
+                            continue;
+                        }
+                        
                         if(isset($_POST['user-edit']) && $_POST['user-edit'] == $user->ID){
                             echo '<option value="' . $user->ID .'" selected >' . $user->display_name . ' (' . $user->user_login . ')' . '</option>';
                         } else {
@@ -280,6 +323,16 @@ class Aliceblogs {
                             </div>
                         </td>
                     </tr>
+                    <tr class="form-field">
+                        <th>
+                            <label for="disable_user">Désactiver le compte</label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="aliceblogs_disable_user" name="aliceblogs_disable_user" value="1" <?php checked(1, get_the_author_meta('aliceblogs_disable_user', $user->ID)); ?> />
+                            <span class="description">Si la case est cochée, l'utilisateur ne pourra plus se connecter</span>
+                        </td>
+                    </tr>
+                </tr>
                 </tbody>
             </table>
             <p class="submit"><input type="submit" class="button button-primary" value="Modifier"></p>
@@ -427,14 +480,6 @@ class Aliceblogs {
     public function add_user_form($valid = null, $message = '') {
         global $wp_roles;
         $roles = $wp_roles->roles;
-        $default_wp_roles = [
-            'administrator',
-            'editor',
-            'author',
-            'contributor',
-            'subscriber'
-        ];
-
         $roles_ordered = [];
         $years = [];
 
@@ -738,15 +783,7 @@ class Aliceblogs {
                 $role_slug = get_role(get_userdata($author_id)->roles[0])->name;
 
                 // Exclude the default WP roles to prevent them from appearing in the filter. 
-                $default_wp_roles = [
-                    'administrator',
-                    'editor',
-                    'author',
-                    'contributor',
-                    'subscriber'
-                ];
-
-                if (in_array($role_slug, $default_wp_roles)) {
+                if (in_array($role_slug, self::default_wp_roles)) {
                     continue;
                 }
 
