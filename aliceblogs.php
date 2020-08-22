@@ -23,6 +23,7 @@ class Aliceblogs {
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
         add_action('wp_enqueue_scripts', [$this, 'load_scripts']);
+        add_action('admin_enqueue_scripts', [$this, 'load_admin_scripts']);
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_get_years', [$this, 'get_years']);
         add_action('wp_ajax_get_degrees', [$this, 'get_degrees']);
@@ -54,7 +55,7 @@ class Aliceblogs {
     }
 
     /**
-     * Load Filter scripts only on home page
+     * Load JS scripts only on home page
      */
     public function load_scripts()
     {
@@ -62,6 +63,17 @@ class Aliceblogs {
             wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
+    }
+
+    /**
+     * Load JS scripts in WP Admin
+     */
+    public function load_admin_scripts() {
+        wp_enqueue_script(
+            'wp-admin',
+            plugin_dir_url(__FILE__)  . '/js/wp-admin.js',
+            ['wp-blocks', 'wp-dom-ready', 'wp-edit-post']
+        );
     }
 
     /**
@@ -367,6 +379,7 @@ class Aliceblogs {
             $result = add_role($role_slug, $role_name, $default_capabilities);
             if ($result instanceof WP_Role) {
                 $_POST = [];
+                self::disable_divi_builder($role_slug);
                 self::add_studio_form(true);
             } else {
                 self::add_studio_form(false, 'Une erreur est survenue, merci de bien vouloir réessayer');
@@ -375,6 +388,29 @@ class Aliceblogs {
         } else {
             self::add_studio_form(false, 'Merci de bien vouloir remplir tous les champs');
         }
+    }
+
+    
+    public function disable_divi_builder($role_slug) {
+        $et_pb_role_settings = get_option('et_pb_role_settings', []);
+        $role_divi_settings = $et_pb_role_settings[$role_slug];
+
+        
+        //var_dump($role_divi_settings);
+        echo '<pre>';
+            var_dump( $role_divi_settings);
+            echo '</pre>';
+        
+        foreach($role_divi_settings as $setting) {    
+            
+            //$et_pb_role_settings[$role_slug][$setting] = 'off';
+        }
+        
+        
+        //var_dump($et_pb_role_settings[$role_slug]);
+
+        //update_option('et_pb_role_settings', $et_pb_role_settings[$role_slug]);
+        
     }
 
     /**
@@ -613,10 +649,14 @@ class Aliceblogs {
     /**
      * Adds post tags below post content
      */
-    function single_post_metadata($content) {
+    public function single_post_metadata($content) {
 
         if (get_post_type() != 'post') {
             return $content;
+        }
+
+        if (get_post_status() != 'published') {
+            //return $content;
         }
 
         $author = get_the_author();
