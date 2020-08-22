@@ -42,16 +42,18 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_most_used_tags', [$this, 'get_most_used_tags']);
         add_action('init', [$this, 'remove_divi_projects']);
         add_action('admin_menu', [$this, 'remove_wp_comments']);
-        add_filter('the_content', [$this, 'single_post_metadata']);
         add_action('admin_menu', [$this, 'add_sidebar_menu_item']);
-        add_filter('wp_mail_from', [$this, 'wp_sender_email']);
-        add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
         add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
         add_action('admin_menu', [$this, 'remove_tools']);
         add_action('init', [$this, 'hide_gutenberg_panels']);
         add_action('add_meta_boxes', [$this, 'add_categories_metabox']);
         add_action('save_post', [$this, 'save_categories_metabox']);
         add_action('admin_init', [$this, 'create_teacher_role']);
+
+        add_filter('wp_mail_from', [$this, 'wp_sender_email']);
+        add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
+        add_filter('the_content', [$this, 'single_post_metadata']);
+        add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
     }
 
     /**
@@ -147,6 +149,19 @@ class Aliceblogs {
         add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'aliceblogs_manage', 'add-user', [$this, 'dispatch']);
         add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'aliceblogs_manage', 'edit-user', [$this, 'aliceblogs_edit_user']);
         add_submenu_page('aliceblogs', 'Studio', 'Studio', 'aliceblogs_manage', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
+    }
+
+    /**
+     * Hide WP Quick edit button
+     * Reason : if user use quick edit, he can allow post comments & change post categories without beeing restrcited. 
+     *          The category list in quick edit is not filtered with user role
+     */
+    public function disable_quick_edit($actions = [], $post = null) {
+        if ( isset( $actions['inline hide-if-no-js'] ) ) {
+            unset( $actions['inline hide-if-no-js'] );
+        }
+
+        return $actions;
     }
 
     /**
@@ -380,7 +395,6 @@ class Aliceblogs {
             $result = add_role($role_slug, $role_name, $default_capabilities);
             if ($result instanceof WP_Role) {
                 $_POST = [];
-                self::disable_divi_builder($role_slug);
                 self::add_studio_form(true);
             } else {
                 self::add_studio_form(false, 'Une erreur est survenue, merci de bien vouloir réessayer');
@@ -633,10 +647,6 @@ class Aliceblogs {
 
         if (get_post_type() != 'post') {
             return $content;
-        }
-
-        if (get_post_status() != 'published') {
-            //return $content;
         }
 
         $author = get_the_author();
