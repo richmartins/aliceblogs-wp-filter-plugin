@@ -77,14 +77,15 @@ class Aliceblogs {
     }
 
     /**
-     * Hide Gutenberg panels for non-admin
+     * Hide Gutenberg categories panel for all non-default WP roles
      */
     public function hide_gutenberg_panels() {
-        if (!current_user_can('administrator')) {
+        $user = wp_get_current_user();
+        if (!in_array($user->roles[0], self::default_wp_roles)) {
             // script file
             wp_register_script(
                 'cc-block-script',
-                plugin_dir_url(__FILE__) .'/js/block-script.js', // adjust the path to the JS file
+                plugin_dir_url(__FILE__) .'/js/block-script.js',
                 array( 'wp-blocks', 'wp-edit-post' )
             );
             // register block editor script
@@ -390,29 +391,6 @@ class Aliceblogs {
         }
     }
 
-    
-    public function disable_divi_builder($role_slug) {
-        $et_pb_role_settings = get_option('et_pb_role_settings', []);
-        $role_divi_settings = $et_pb_role_settings[$role_slug];
-
-        
-        //var_dump($role_divi_settings);
-        echo '<pre>';
-            var_dump( $role_divi_settings);
-            echo '</pre>';
-        
-        foreach($role_divi_settings as $setting) {    
-            
-            //$et_pb_role_settings[$role_slug][$setting] = 'off';
-        }
-        
-        
-        //var_dump($et_pb_role_settings[$role_slug]);
-
-        //update_option('et_pb_role_settings', $et_pb_role_settings[$role_slug]);
-        
-    }
-
     /**
      * New studio html page
      */
@@ -489,8 +467,6 @@ class Aliceblogs {
             $message = 'Bonjour ' . $_POST['first_name'] . ', <br><br>Votre compte sur Aliceblogs vient d\'être créé. <br><br> Pour vous y connecter voici vos informations d\'identification : <br><br> Nom d\'utilisateur : ' 
                         . $_POST['user_login'] . '<br> Mot de passe : ' . $userdata['user_pass'] . '<br> Connexion au site : ' . wp_login_url() . '<br><br>Une fois connecté vous aurez la possibilité de changer votre mot de passe dans les réglages de votre compte. 
                         <br><br>Merci <br><br> EPFL Alice';
-            
-            var_dump($userdata);
 
             $result = wp_insert_user($userdata);
             if ($result instanceof WP_Error) {
@@ -576,18 +552,22 @@ class Aliceblogs {
     }
 
      /**
-     * Create categories metabox 
+     * Create categories metabox
+     * Show metabox only if user is student
      */
     public function add_categories_metabox() {
-        $screens = ['post'];
-        foreach ($screens as $screen) {
-            add_meta_box(
-                'categories-box',           
-                'Choisir une catégorie',  
-                [$this, 'categories_metabox_content'],  
-                $screen,                   
-                'side'
-            );
+        $user = wp_get_current_user();
+        if (!in_array($user->roles[0], self::default_wp_roles)) {
+            $screens = ['post'];
+            foreach ($screens as $screen) {
+                add_meta_box(
+                    'categories-box',           
+                    'Choisir une catégorie',  
+                    [$this, 'categories_metabox_content'],  
+                    $screen,                   
+                    'side'
+                );
+            }
         }
     }
 
