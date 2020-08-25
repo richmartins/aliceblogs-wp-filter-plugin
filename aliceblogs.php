@@ -19,6 +19,8 @@ class Aliceblogs {
         'aliceblogs_teacher'
     ];
 
+    const default_medias_category_id = 28;
+
     public function __construct(){
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
@@ -47,8 +49,10 @@ class Aliceblogs {
         add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
         add_action('admin_menu', [$this, 'remove_tools']);
         add_action('init', [$this, 'hide_gutenberg_elements']);
-        add_action('add_meta_boxes', [$this, 'add_categories_metabox']);
-        add_action('save_post', [$this, 'save_categories_metabox']);
+
+        add_action('add_meta_boxes', [$this, 'add_metabox']);
+        add_action('save_post', [$this, 'save_metabox']);
+
         add_action('admin_init', [$this, 'create_teacher_role']);
 
         add_filter('wp_mail_from', [$this, 'wp_sender_email']);
@@ -145,6 +149,8 @@ class Aliceblogs {
         add_submenu_page('aliceblogs', 'Ajouter', 'Ajouter', 'aliceblogs_manage', 'add-user', [$this, 'dispatch']);
         add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'aliceblogs_manage', 'edit-user', [$this, 'aliceblogs_edit_user']);
         add_submenu_page('aliceblogs', 'Studio', 'Studio', 'aliceblogs_manage', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
+        
+        add_submenu_page('aliceblogs', 'DEBUG', 'DEBUG', 'aliceblogs_manage', 'debug-studio', [$this, 'aliceblogs_debug']);
     }
 
     /**
@@ -191,7 +197,7 @@ class Aliceblogs {
                 continue;
             }
             $sorted_roles[explode('-', $role_slug)[1]][explode('-', $role_slug)[2]][] = [
-                'slug' =>$role_slug,
+                'slug' => $role_slug,
                 'name' => $role['name']
             ];
         }
@@ -464,7 +470,6 @@ class Aliceblogs {
      * Verfiy form fields & insert user in DB & send new user email
      */
     public function register_new_user() {
-
         if (!empty($_POST['user_login']) && !empty($_POST['email']) && is_email($_POST['email']) && !empty($_POST['first_name']) 
             && !empty($_POST['last_name']) && !empty($_POST['members_user_roles'])) {
             $userdata = [
@@ -563,33 +568,112 @@ class Aliceblogs {
         <?php
     }
 
-     /**
-     * Create categories metabox
+    /**
+     * Create categories & medias metabox
      * Show metabox only if user is student
      */
-    public function add_categories_metabox() {
+    public function add_metabox() {
         $user = wp_get_current_user();
+        $screens = ['post'];
         if (!in_array($user->roles[0], self::default_wp_roles)) {
-            $screens = ['post'];
             foreach ($screens as $screen) {
                 add_meta_box(
                     'categories-box',           
                     'Choisir une catégorie',  
                     [$this, 'categories_metabox_content'],  
+                    $screen,
+                    'side'
+                );
+            }
+    
+            foreach ($screens as $screen) {
+                add_meta_box(
+                    'medias-box',           
+                    'Choisir un/des médias',  
+                    [$this, 'medias_metabox_content'],  
                     $screen,                   
                     'side'
                 );
             }
         }
+
+        foreach ($screens as $screen) {
+            add_meta_box(
+                'participants-box',
+                'Choisir des participants',
+                [$this, 'participants_metabox_content'],
+                $screen,
+                'side'
+            );
+        }
+    }
+
+    
+    public function aliceblogs_debug() {
+        echo "DEBUG MODE <br><br>";
     }
 
     /**
-     * Categories metabox - save data
+     * Save custom metabox (Categories & Medias)
      */
-    public function save_categories_metabox($post_id) {
-        if (array_key_exists('aliceblogs-categories', $_POST)) {
-            wp_set_post_categories($post_id, $_POST['aliceblogs-categories']);
+    public function save_metabox($post_id) {
+        if (isset($_POST['aliceblogs-medias']) && $_POST['aliceblogs-categories']) {
+            $new_cats = array_merge($_POST['aliceblogs-medias'],  $_POST['aliceblogs-categories']);
+        } else {
+            $new_cats = $_POST['aliceblogs-categories'];
         }
+        wp_set_post_categories($post_id, $new_cats);
+
+        $participants = [];
+        foreach($_POST['aliceblogs-participants'] as $user_id){
+            $user = get_user_by('ID', $user_id);
+            $participants[$user_id] = [
+                'name' => $user->user_nicename,
+                'display_name' => $user->display_name
+            ];
+        }
+
+        //save the participants
+        //DANGER FUNCTION
+        update_post_meta($post_id, '_aliceblogs_participants', serialize($participants));
+    }
+
+    public function participants_metabox_content ($post) {
+        //get users that are already participants
+        $users_already_participants = unserialize(get_post_meta($post->ID, '_aliceblogs_participants')[0]);
+        //get list of users of the same studio
+        foreach(get_userdata($post->post_author)->roles as $role) {
+            $args = [
+                'role'     => $role,
+                'order'    => 'ASC',
+                'order_by' => 'display_name'
+            ];
+
+            //display a list of users
+            $nice_title = preg_replace('/[_-]/', ' ', $role);
+            $year = explode('-', $role)[1];
+            ?>
+                <h3><?php echo ucwords($nice_title); ?></h3>
+            <?php
+            foreach(get_users($args) as $user){
+      
+                if($user->ID == $post->post_author) {
+                    continue;
+                }
+
+                $checked = '';
+                if(in_array($user->ID, array_keys($users_already_participants))){
+                    $checked = 'checked';
+                }
+                ?>
+                    <div>
+                        <input id="<?= $year . '_' . $user->ID ?>" type="checkbox" value="<?= $user->ID ?>" name="aliceblogs-participants[]" <?= $checked ?>>
+                        <label class="aliceblogs-metabox-item" for="<?= $year . '_' . $user->ID ?>"><?= $user->display_name ?></label>
+                    </div>
+                <?php
+            }
+        }
+        //preselect participants
     }
 
     /**
@@ -604,7 +688,7 @@ class Aliceblogs {
         $year_category = get_category_by_slug($degree . '-' . $year)->term_id;
 
         $args = [
-            'hide_empty'               => FALSE,
+            'hide_empty'               => false,
             'hierarchical'             => 1,
             'taxonomy'                 => 'category',
             'child_of'                 => $year_category,
@@ -612,24 +696,73 @@ class Aliceblogs {
 
         ?>
         <div>
-            <h2 id="aliceblogs-metabox-categories-title"><?= $year . ' - ' . $degree ?></h2>
+            <h2 id="aliceblogs-metabox-title"><?= $year . ' - ' . $degree ?></h2>
             <?php
-            $parents = [];
-
             // Find child categories to degree-year cat
             $categories = get_categories($args);
             // Get post category 
-            $post_category = get_the_category($post->ID);
+            $post_categories = get_the_category($post->ID);
+            $post_categories_slugs = [];
+            foreach($post_categories as $cat_term) {
+                $post_categories_slugs[$cat_term->term_id] = $cat_term->slug;
+            }
+
             foreach($categories as $category) {
                 // autoselected post category
                 $checked = '';
-                if ($category->slug == $post_category[0]->slug) {
+                if(in_array($category->slug, $post_categories_slugs)){
                     $checked = 'checked';
                 }
                 ?>
                 <div>
                     <input id="<?= $category->slug ?>" type="radio" value="<?= $category->term_id ?>" name="aliceblogs-categories[]" <?= $checked ?>>
-                    <label class="aliceblogs-metabox-category" for="<?= $category->slug ?>"><?= $category->name ?></label>
+                    <label class="aliceblogs-metabox-item" for="<?= $category->slug ?>"><?= $category->name ?></label>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * medias_metabox_content
+     *
+     * @param  mixed $post
+     * @return void
+     */
+    public function medias_metabox_content($post) {
+        $taxonomies = [ 
+            'taxonomy' => 'category'
+        ];
+        $args = [
+            'parent'     => self::default_medias_category_id,
+            'hide_empty' => false,
+            'hierarchical' => 1
+        ];
+
+        ?>
+        <div>
+            <h2 id="aliceblogs-metabox-title">Choisir un/des médias</h2>
+            <?php
+            $post_categories = get_the_category($post->ID);
+            $post_categories_slugs = [];
+
+            foreach($post_categories as $cat_term) {
+                $post_categories_slugs[$cat_term->term_id] = $cat_term->slug;
+            }
+            foreach(get_terms($taxonomies, $args) as $media) {
+                // autoselected post category
+                $checked = '';
+
+                if (in_array($media->slug, $post_categories_slugs)) {
+                    $checked = 'checked';
+                }
+
+                ?>
+                <div>
+                    <input id="media_<?= $media->slug ?>" type="checkbox" value="<?= $media->term_id ?>" name="aliceblogs-medias[]" <?= $checked ?>>
+                    <label class="aliceblogs-metabox-item" for="media_<?= $media->slug ?>"><?= $media->name ?></label>
                 </div>
                 <?php
             }
@@ -652,6 +785,12 @@ class Aliceblogs {
         $date = get_the_date('j/m/Y');
         $categories = get_the_category();
         $posttags = get_the_tags();
+        $participants  = unserialize(get_post_meta(get_the_ID(), '_aliceblogs_participants')[0]);
+        if(!empty($participants)){
+            $participants = ', ' . implode(', ', array_column($participants, 'display_name'));
+        }else {
+            $participants = '';
+        }
 
         // getting studios (role of user) by author ID
         global $wp_roles;                  // getting role name by role slug
@@ -670,12 +809,12 @@ class Aliceblogs {
         if ($categories) {
             $cats_badges = '';
             foreach ($categories as $category) {
-                $cats_badges .= $category->name;
+                $cats_badges .= $category->name . ' ';
             }
         }
 
         /* Bulding post's meta data */
-        $content = 'par ' . $author . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . '<br><br>' . $content;
+        $content = 'par ' . $author . $participants . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . '<br><br>' . $content;
 
         return $content;
     }
@@ -747,7 +886,7 @@ class Aliceblogs {
         $args = [
             'parent'     => 0,
             'hide_empty' => false,
-            'exclude'    => [1, 28]
+            'exclude'    => [1, self::default_medias_category_id]
         ];
         $terms = get_terms($taxonomies, $args);
         echo json_encode($terms);
@@ -765,7 +904,7 @@ class Aliceblogs {
             'taxonomy' => 'category'
         ];
         $args = [
-            'parent'     => 28,
+            'parent'     => self::default_medias_category_id,
             'hide_empty' => false
         ];
         $terms = get_terms($taxonomies, $args);

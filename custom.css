@@ -341,13 +341,13 @@ a.aliceblogs-card > .aliceblogs-card-container {
     margin-top: 3em;
 }
 
-#aliceblogs-metabox-categories-title {
+#aliceblogs-metabox-title {
     font-weight: bold !important;
     font-size: 1.3em !important;
     padding-left: 0 !important;
 }
 
-.aliceblogs-metabox-category {
+.aliceblogs-metabox-item {
     font-size: 14px;
 }
 
