@@ -23,10 +23,10 @@ class Aliceblogs {
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
         add_action('wp_enqueue_scripts', [$this, 'load_scripts']);
-        add_action('admin_enqueue_scripts', [$this, 'load_admin_scripts']);
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_get_years', [$this, 'get_years']);
         add_action('wp_ajax_get_degrees', [$this, 'get_degrees']);
+        add_action('wp_ajax_get_medias', [$this, 'get_medias']);
         add_action('wp_ajax_get_posts', [$this, 'get_posts']);
         add_action('wp_ajax_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_get_students', [$this, 'get_students']);
@@ -36,6 +36,7 @@ class Aliceblogs {
         add_action('wp_ajax_nopriv_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_nopriv_get_degrees', [$this, 'get_degrees']);
         add_action('wp_ajax_nopriv_get_years', [$this, 'get_years']);
+        add_action('wp_ajax_nopriv_get_medias', [$this, 'get_medias']);
         add_action('wp_ajax_nopriv_get_studios', [$this, 'get_studios']);
         add_action('wp_ajax_nopriv_get_students', [$this, 'get_students']);
         add_action('wp_ajax_nopriv_search_posts', [$this, 'search_posts']);
@@ -45,7 +46,7 @@ class Aliceblogs {
         add_action('admin_menu', [$this, 'add_sidebar_menu_item']);
         add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
         add_action('admin_menu', [$this, 'remove_tools']);
-        add_action('init', [$this, 'hide_gutenberg_panels']);
+        add_action('init', [$this, 'hide_gutenberg_elements']);
         add_action('add_meta_boxes', [$this, 'add_categories_metabox']);
         add_action('save_post', [$this, 'save_categories_metabox']);
         add_action('admin_init', [$this, 'create_teacher_role']);
@@ -66,34 +67,29 @@ class Aliceblogs {
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
     }
-
+    
     /**
-     * Load JS scripts in WP Admin
+     * Hide Gutenberg categories panel for all non-default WP roles
      */
-    public function load_admin_scripts() {
+    public function hide_gutenberg_elements() {
+        $user = wp_get_current_user();
+
+        // Hide Gutenberg blocks
         wp_enqueue_script(
             'wp-admin',
             plugin_dir_url(__FILE__)  . '/js/wp-admin.js',
             ['wp-blocks', 'wp-dom-ready', 'wp-edit-post']
         );
-    }
 
-    /**
-     * Hide Gutenberg categories panel for all non-default WP roles
-     */
-    public function hide_gutenberg_panels() {
-        $user = wp_get_current_user();
         if (!in_array($user->roles[0], self::default_wp_roles)) {
             // script file
             wp_register_script(
                 'cc-block-script',
                 plugin_dir_url(__FILE__) .'/js/block-script.js',
-                array( 'wp-blocks', 'wp-edit-post' )
+                [ 'wp-blocks', 'wp-edit-post' ]
             );
             // register block editor script
-            register_block_type( 'cc/ma-block-files', array(
-                'editor_script' => 'cc-block-script'
-            ) );
+            register_block_type('cc/ma-block-files', [ 'editor_script' => 'cc-block-script' ]);
         }
     }
 
@@ -157,10 +153,12 @@ class Aliceblogs {
      *          The category list in quick edit is not filtered with user role
      */
     public function disable_quick_edit($actions = [], $post = null) {
-        if ( isset( $actions['inline hide-if-no-js'] ) ) {
-            unset( $actions['inline hide-if-no-js'] );
+        if (!current_user_can('administrator')) {
+            if (isset($actions['inline hide-if-no-js'])) {
+                unset($actions['inline hide-if-no-js']);
+            }
         }
-
+        
         return $actions;
     }
 
@@ -663,7 +661,7 @@ class Aliceblogs {
         if ($posttags) {
             $tags_badges = [];
             foreach($posttags as $tag) {
-                array_push($tags_badges,'<a class="aliceblogs-post-tag" href="/tag/' . $tag->slug . '/">#' . $tag->name . '</a>');
+                array_push($tags_badges,'<a class="aliceblogs-post-tag" href="/?q=' . $tag->name . '">#' . $tag->name . '</a>');
             }
             $tags = '<div id="aliceblogs-post-tags-container">' . implode(' ', $tags_badges) . '</div>';
         }
@@ -689,9 +687,7 @@ class Aliceblogs {
      */
     public function get_posts(){
         $categories = $_POST['categories'];
-        if (is_array($categories)) {
-            $categories = implode(",", $categories);
-        }
+        $medias = $_POST['medias'];
 
         $users = $_POST['users'];
         // Get all users from selected studios
@@ -708,15 +704,15 @@ class Aliceblogs {
         // Create WP Query to filter posts authors & categories
         $args = [
             'posts_per_page' => -1,
+            'cat' => $categories,
             'post_type' => 'post',
-            'cat' => [$categories],
             'post_status' => 'publish',
             'author' => implode(",", $users)
         ];
         $query = new WP_Query($args);
 
         foreach($query->posts as $post){
-            $posts[$post->ID] = [
+            $data = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
                 'thumbnail' => get_the_post_thumbnail_url((int)$post->ID) ? get_the_post_thumbnail_url((int)$post->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
@@ -724,6 +720,16 @@ class Aliceblogs {
                 'author'    => get_the_author_meta('display_name', $post->post_author),
                 'content'   => $post->post_content
             ];
+            if (empty($medias)) {
+                $posts[$post->ID] = $data;
+            } else {
+                $post_cats = get_the_category((int)$post->ID);
+                foreach ($post_cats as $cat) {
+                    if (in_array(strval($cat->term_id), $medias)) {
+                        $posts[$post->ID] = $data;
+                    }
+                }
+            }
         }
         echo json_encode($posts);
         die();
@@ -741,7 +747,26 @@ class Aliceblogs {
         $args = [
             'parent'     => 0,
             'hide_empty' => false,
-            'exclude'    => 1
+            'exclude'    => [1, 28]
+        ];
+        $terms = get_terms($taxonomies, $args);
+        echo json_encode($terms);
+        die();
+    }
+
+    
+    /**
+     * get_medias
+     *
+     * @return void
+     */
+    public function get_medias() {
+        $taxonomies = [ 
+            'taxonomy' => 'category'
+        ];
+        $args = [
+            'parent'     => 28,
+            'hide_empty' => false
         ];
         $terms = get_terms($taxonomies, $args);
         echo json_encode($terms);
@@ -795,10 +820,11 @@ class Aliceblogs {
      * @return void
      */
     public function get_studios() {
-        if(isset($_POST['elements_ids'])){
+        if(isset($_POST['elements_ids']) && isset($_POST['medias_ids'])){
             if (is_array($_POST['elements_ids'])) {
                 $elements_ids = implode(",", $_POST['elements_ids']);
             }
+            
             $args = [
                 'numberposts' => -1,
                 'category'    => $elements_ids
@@ -806,22 +832,28 @@ class Aliceblogs {
             
             $roles = [];
             foreach(get_posts($args) as $post){
-                global $wp_roles;
 
-                $author_id = get_post_field('post_author', $post->ID);
-                $user_roles = get_userdata($author_id)->roles;
+                $post_cats = get_the_category((int)$post->ID);
+                foreach ($post_cats as $cat) {
+                    if (in_array(strval($cat->term_id), $_POST['medias_ids'])) {
+                        global $wp_roles;
 
-                // loop on all user roles
-                foreach($user_roles as $role) {
-                    $role_slug = get_role($role)->name;
-                    $role_name = $wp_roles->role_names[$role_slug];
+                        $author_id = get_post_field('post_author', $post->ID);
+                        $user_roles = get_userdata($author_id)->roles;
 
-                    // Exclude the default WP roles to prevent them from appearing in the filter. 
-                    if (in_array($role_slug, self::default_wp_roles)) {
-                        continue;
+                        // loop on all user roles
+                        foreach($user_roles as $role) {
+                            $role_slug = get_role($role)->name;
+                            $role_name = $wp_roles->role_names[$role_slug];
+
+                            // Exclude the default WP roles to prevent them from appearing in the filter. 
+                            if (in_array($role_slug, self::default_wp_roles)) {
+                                continue;
+                            }
+                            
+                            $roles[$role_slug] = $role_name;
+                        }
                     }
-                    
-                    $roles[$role_slug] = $role_name;
                 }
             }
 
@@ -864,7 +896,8 @@ class Aliceblogs {
             $wp_users = $wpdb->prefix . "users";
             $wp_usermeta = $wpdb->prefix . "usermeta";
 
-            $search = str_replace(' ', '%', $_POST['search_text']);
+            //$search = str_replace(' ', '%', $_POST['search_text']);
+            $search = $_POST['search_text'];
             
             $sql = "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date FROM " . $wp_posts . " as wp_posts INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id) INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id) INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID) INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id AND ( ( wp_taxonmy.name LIKE '%%%s%%' ) OR (wp_users.display_name LIKE '%%%s%%') OR (wp_posts.post_title LIKE '%%%s%%') OR (wp_usermeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND (wp_posts.post_status = 'publish')";
             

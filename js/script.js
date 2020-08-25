@@ -4,6 +4,7 @@ jQuery(document).ready(function($){
 
     $('#aliceblogs-filter-degrees-title').hide()
     $('#aliceblogs-filter-elements-title').hide()
+    $('#aliceblogs-filter-medias-title').hide()
     $('#aliceblogs-filter-studios-title').hide()
     $('#aliceblogs-filter-students-title').hide()
 
@@ -11,22 +12,28 @@ jQuery(document).ready(function($){
      * Empty search field when clicked on browser back to last page button
      */
     $(window).bind("pageshow", function() {
-      $('#aliceblogs-searchbar').val('')
+      let searchParams = new URLSearchParams(window.location.search)
+      if (searchParams.get('q') == null) {
+        $('#aliceblogs-searchbar').val('')
+      } else {
+        $('#aliceblogs-searchbar').val(searchParams.get('q'))
+        $('#aliceblogs-filter').hide()
+      }
     })
 
     $('#aliceblogs-view-mosaic').click( function() {
-      if(! $('#aliceblogs-view-mosaic').hasClass("aliceblogs-view-active")) {
-        $('#aliceblogs-view-list').removeClass("aliceblogs-view-active")
-        $('#aliceblogs-view-mosaic').addClass("aliceblogs-view-active")
+      if(!$('#aliceblogs-view-list').hasClass("aliceblogs-view-active")) {
+        $('#aliceblogs-view-mosaic').removeClass("aliceblogs-view-active")
+        $('#aliceblogs-view-list').addClass("aliceblogs-view-active")
         view_options = 'card'
         render_posts();
       }
     })
 
     $('#aliceblogs-view-list').click( function() {
-      if(! $('#aliceblogs-view-list').hasClass("aliceblogs-view-active")) {
-        $('#aliceblogs-view-mosaic').removeClass("aliceblogs-view-active")
-        $('#aliceblogs-view-list').addClass("aliceblogs-view-active")
+      if(!$('#aliceblogs-view-mosaic').hasClass("aliceblogs-view-active")) {
+        $('#aliceblogs-view-mosaic').addClass("aliceblogs-view-active")
+        $('#aliceblogs-view-list').removeClass("aliceblogs-view-active")
         view_options = 'list'
         render_posts();
       }
@@ -44,8 +51,10 @@ jQuery(document).ready(function($){
         for (index in posts) {
           if (view_options == 'card') {
             html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
+            html += '<div class="aliceblogs-card-container">'
             html += '<img alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
             html += '<h4 class="aliceblogs-card-text">'+ posts[index].title +'</h4>'
+            html += '</div>'
             html += '</a>'
           } else if (view_options == 'list') {
             html += '<div class="animate__animated animate__fadeIn aliceblogs-list">'
@@ -79,13 +88,14 @@ jQuery(document).ready(function($){
       }
     }
 
-    function get_posts(categories = null, studios = null, students = null){
+    function get_posts(categories = null, medias = null, studios = null, students = null){
       $.ajax({
             url: url,
             type: "POST",
             data: {
                 'action': 'get_posts',
                 'categories': categories,
+                'medias': medias,
                 'roles': studios,
                 'users': students
             },
@@ -152,16 +162,24 @@ jQuery(document).ready(function($){
           'year_id': year_id
         }
       }).done(function(results) {
-          get_posts(year_id);
+          if ($('#aliceblogs-searchbar').val() != '') {
+            search_posts()
+          } else {
+            get_posts(year_id);
+          }
+
           $('#aliceblogs-filter-degrees').empty()
           $('#aliceblogs-filter-elements').empty()
           $('#aliceblogs-filter-studios').empty()
           $('#aliceblogs-filter-students').empty()
-          let degrees = JSON.parse(results)
+          $('#aliceblogs-filter-medias').empty()
           $('#aliceblogs-filter-degrees-title').show()
           $('#aliceblogs-filter-elements-title').hide()
           $('#aliceblogs-filter-studios-title').hide()
           $('#aliceblogs-filter-students-title').hide()
+          $('#aliceblogs-filter-medias-title').hide()
+
+          let degrees = JSON.parse(results)
           for (index in degrees) {
               $('#aliceblogs-filter-degrees')
               .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
@@ -189,10 +207,11 @@ jQuery(document).ready(function($){
             $('#aliceblogs-filter-elements').empty()
             $('#aliceblogs-filter-studios').empty()
             $('#aliceblogs-filter-students').empty()
-
+            $('#aliceblogs-filter-medias').empty()
             $('#aliceblogs-filter-elements-title').show()
             $('#aliceblogs-filter-studios-title').hide()
             $('#aliceblogs-filter-students-title').hide()
+            $('#aliceblogs-filter-medias-title').hide()
 
             let elements = JSON.parse(results)
             for (index in elements) {
@@ -202,15 +221,14 @@ jQuery(document).ready(function($){
                 .append($('<br>'))
             }
         });
-    })
+    }) 
 
     $('#aliceblogs-filter-elements').change(function () {
       let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id').replace('degree-', '')
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id').replace('element-', '');
       }).get();
-      $('#aliceblogs-filter-studios').empty()
-      $('#aliceblogs-filter-students').empty()
+
       if (elements_ids.length === 0) {
         get_posts(degree_id)
         $('#aliceblogs-filter-studios-title').hide()
@@ -221,8 +239,54 @@ jQuery(document).ready(function($){
           url: url,
           type: "POST",
           data: {
+            'action': 'get_medias'
+          }
+        }).done(function(results) {
+          $('#aliceblogs-filter-studios').empty()
+          $('#aliceblogs-filter-medias').empty()
+          $('#aliceblogs-filter-students').empty()
+          $('#aliceblogs-filter-medias-title').show()
+          $('#aliceblogs-filter-students-title').hide()
+          $('#aliceblogs-filter-studios-title').hide()
+          let medias = JSON.parse(results)
+          for (index in medias) {
+              $('#aliceblogs-filter-medias')
+              .append($('<input class="checkbox-tools" type="checkbox" id="media-' + medias[index]['term_id'] + '" name="media" value="' + medias[index]['slug'] + '">'))
+              .append($('<label class="for-checkbox-tools" for="media-' + medias[index]['term_id'] + '" >' + medias[index]['name'] + '</label>'))
+              .append($('<br>'))
+          }
+        });
+      }
+    })
+
+    $('#aliceblogs-filter-medias').change(function () {
+      let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id').replace('degree-', '')
+      let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
+        return $(this).attr('id').replace('element-', '');
+      }).get();
+      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
+        return $(this).attr('id').replace('media-', '');
+      }).get();
+
+      $('#aliceblogs-filter-studios').empty()
+      $('#aliceblogs-filter-students').empty()
+
+      if (elements_ids.length === 0) {
+        get_posts(degree_id)
+        $('#aliceblogs-filter-studios-title').hide()
+      } else if (medias_ids.length === 0) {
+        get_posts(elements_ids)
+        $('#aliceblogs-filter-studios-title').hide()
+      } else {
+        get_posts(elements_ids, medias_ids)
+        
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: {
             'action': 'get_studios',
-            'elements_ids': elements_ids
+            'elements_ids': elements_ids,
+            'medias_ids': medias_ids
           }
         }).done(function(results) {
           $('#aliceblogs-filter-studios').empty()
@@ -243,16 +307,21 @@ jQuery(document).ready(function($){
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id').replace('element-', '');
       }).get();
+      
       let studios_names = $("#aliceblogs-filter-studios>input:checkbox:checked").map(function(){
         return $(this).attr('id').replace('studio-', '');
       }).get();
 
+      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
+        return $(this).attr('id').replace('media-', '');
+      }).get();
+
       if (studios_names.length === 0) {
-        get_posts(elements_ids)
+        get_posts(elements_ids, medias_ids)
         $('#aliceblogs-filter-students').empty()
         $('#aliceblogs-filter-students-title').hide()
       } else {
-        get_posts(elements_ids, studios_names)
+        get_posts(elements_ids, medias_ids, studios_names)
         
         $.ajax({
           url: url,
@@ -285,15 +354,18 @@ jQuery(document).ready(function($){
         return $(this).attr('id').replace('studio-', '');
       }).get();
 
+      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
+        return $(this).attr('id').replace('media-', '');
+      }).get();
+
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function () {
         return $(this).attr('id').replace('element-', '');
       }).get();
 
       if (students_ids.length === 0) {
-        get_posts(elements_ids, studios_names)
+        get_posts(elements_ids, studios_names, medias_ids)
       } else {
-        studios_names = null
-        get_posts(elements_ids, studios_names, students_ids)
+        get_posts(elements_ids, medias_ids, null, students_ids)
       }
     })
 
@@ -330,6 +402,7 @@ jQuery(document).ready(function($){
      * Hide filter when searchbar has text
      */
     $('#aliceblogs-searchbar').on('input', function() {
+      window.history.pushState({}, "Home", "/");
       if ($('#aliceblogs-searchbar').val() != '') {
          // query search
         $('#aliceblogs-filter').hide()
@@ -338,7 +411,10 @@ jQuery(document).ready(function($){
         }, 500 );
       } else {
         // searchbar is empty : show/reset filter & show posts
-        get_degrees()
+        delay(function(){
+          get_degrees()
+        }, 500 );
+        
         $('#aliceblogs-filter').show()
       }
     });

@@ -18,7 +18,7 @@ body #login h1 a {
     display: flex;
     flex-direction: column;
     padding-right: 2em;
-    max-height: 150px;
+    max-height: 220px;
 }
 
 .box-h {
@@ -27,6 +27,7 @@ body #login h1 a {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    color: var(--dark-grey);
 }
 
 @media screen and (max-width: 800px) {
@@ -45,8 +46,10 @@ body #login h1 a {
 
 .aliceblogs-filter-title {
     color: #666;
-    text-transform: uppercase;
+    text-transform: lowercase;
+    text-decoration: underline;
     font-size: 1.2em;
+    padding-bottom: .5em;
 }
 
 :root {
@@ -57,7 +60,9 @@ body #login h1 a {
     --dark-light: #353746;
     --red: #da2c4d;
     --yellow: #f8ab37;
-    --grey: #ecedf3;
+    --light-grey: #ecedf3;
+    --grey:  #999999;
+    --dark-grey: #666;
 
 }
 
@@ -76,7 +81,7 @@ body #login h1 a {
 .checkbox-tools:not(:checked) + label{
     position: relative;
     display: inline-block;
-    padding: 0 .5em .5em 0;
+    /*padding: 0 .5em .5em 0;*/
     /*width: 100%;*/
     min-width: 60px;
     font-size: 14px;
@@ -88,14 +93,14 @@ body #login h1 a {
     overflow: hidden;
     cursor: pointer;
     text-transform: uppercase;
-    color: var(--black);
+    color: var(--gray);
 }
 
 .checkbox-tools:hover + label:hover{
-    color: red;
+    color: var(--black);
 }
 .checkbox-tools:checked + label{
-    color: red;
+    color: var(--black);
 }
 
 #aliceblogs-header {
@@ -110,11 +115,11 @@ body #login h1 a {
     width: 100%;
     font-size: 20px;
     border: none;
-    border-bottom: 1px solid var(--grey);
+    border-bottom: 1px solid var(--light-grey);
 }
 
 #aliceblogs-searchbar:focus {
-    border-color: red;
+    border-color: var(--black);
 }
 
 #aliceblogs-searchbar-proposal {
@@ -130,7 +135,7 @@ body #login h1 a {
 
 .proposal-tag:hover {
     cursor: pointer;
-    color: var(--red);
+    color: var(--black);
     text-decoration: underline;
 }
 
@@ -139,12 +144,8 @@ body #login h1 a {
     font-size: 15px;
 }
 
-#aliceblogs-post-tags-container {
-    margin-bottom: 2em;
-}
-
 .aliceblogs-post-tag:hover {
-    color: var(--red);
+    color: var(--black);
     text-decoration: underline;
 }
 
@@ -207,32 +208,36 @@ body #login h1 a {
 }
 
 #aliceblogs-carddeck {
-  text-align: left;
-  column-count: 4;
-  column-gap: 8px; }
-  @media screen and (max-width: 1200px) {
-    #aliceblogs-carddeck {
-      column-count: 3; } }
-  @media screen and (max-width: 800px) {
-    #aliceblogs-carddeck {
-      column-count: 1; } }
-  #aliceblogs-carddeck > .aliceblogs-card {
-    margin-bottom: 8px;
-    break-inside: avoid;
-    page-break-inside: avoid;
-    page-break-before: avoid;
+  column-count: 4; 
+  column-gap: 8px; 
 }
 
-.aliceblogs-card {
+@media screen and (max-width: 1200px) {
+    #aliceblogs-carddeck {
+      column-count: 3; 
+    } 
+}
+@media screen and (max-width: 800px) {
+    #aliceblogs-carddeck {
+      column-count: 1; 
+    } 
+}
+
+a.aliceblogs-card {
     display: block;
-    margin-bottom: 8px;
     break-inside: avoid;
-    page-break-inside: avoid;
+    page-break-after: avoid;
     page-break-before: avoid;
+    page-break-inside: avoid;
+}
+a.aliceblogs-card > .aliceblogs-card-container {
+    display: inline-block;
 }
 
 .aliceblogs-card-img {
     width: 100%;
+    height: auto;
+
 }
 
 
@@ -253,7 +258,7 @@ body #login h1 a {
     }
 }
 
-.aliceblogs-card:hover .aliceblogs-card-text{
+.aliceblogs-card:hover .aliceblogs-card-text {
     visibility: visible;
     opacity: 1;
 }
