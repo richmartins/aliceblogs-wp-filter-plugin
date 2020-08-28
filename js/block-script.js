@@ -1,3 +1,6 @@
+// Remove WP Gutenberg panels
+// List of all panels(metabox): https://github.com/WordPress/gutenberg/tree/master/packages/edit-post/src/components/sidebar
+
 wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'taxonomy-panel-category' ) ; // category
 //wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'taxonomy-panel-TAXONOMY-NAME' ) ; // custom taxonomy
 //wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'taxonomy-panel-post_tag' ); // tags

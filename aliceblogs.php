@@ -91,13 +91,11 @@ class Aliceblogs {
         
         if (!in_array($user->roles[0], self::default_wp_roles)) {
             // script file
-            wp_register_script(
-                'cc-block-script',
+            wp_enqueue_script(
+                'block-script',
                 plugin_dir_url(__FILE__) .'/js/block-script.js',
                 [ 'wp-blocks', 'wp-edit-post' ]
             );
-            // register block editor script
-            register_block_type('cc/ma-block-files', [ 'editor_script' => 'cc-block-script' ]);
         }
     }
 
@@ -730,7 +728,7 @@ class Aliceblogs {
     public function save_metabox($post_id) {
         $user = wp_get_current_user();
 
-        if (!in_array($user->roles[0], self::default_wp_roles)) {
+        if (!in_array($user->roles[0], self::default_wp_roles) && isset($_POST['aliceblogs-categories'])) {
             $media = get_category_by_slug($_POST['aliceblogs-categories']);
             wp_set_post_categories($post_id, [$media->term_id, $media->parent]);
     
