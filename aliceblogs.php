@@ -659,41 +659,22 @@ class Aliceblogs {
                     'side'
                 );
             }
-    
+
             foreach ($screens as $screen) {
                 add_meta_box(
-                    'medias-box',           
-                    'Choisir un/des médias',  
-                    [$this, 'medias_metabox_content'],  
-                    $screen,                   
+                    'participants-box',
+                    'Choisir des participants',
+                    [$this, 'participants_metabox_content'],
+                    $screen,
                     'side'
                 );
             }
-        }
-
-        foreach ($screens as $screen) {
-            add_meta_box(
-                'participants-box',
-                'Choisir des participants',
-                [$this, 'participants_metabox_content'],
-                $screen,
-                'side'
-            );
         }
     }
 
     
     public function aliceblogs_debug() {
         echo "<h1>DEBUG MODE </h1><br><br>";
-        $taxonomies = [ 
-            'taxonomy' => 'category'
-        ];
-        $args = [
-            'parent'     => [24, 14],
-            'hide_empty' => false
-        ];
-        $terms = get_terms($taxonomies, $args);
-        var_dump($terms);
         /*
         WORK IN PROGESS 
 
@@ -750,12 +731,8 @@ class Aliceblogs {
         $user = wp_get_current_user();
 
         if (!in_array($user->roles[0], self::default_wp_roles)) {
-            if (isset($_POST['aliceblogs-medias']) && $_POST['aliceblogs-categories']) {
-                $new_cats = array_merge($_POST['aliceblogs-medias'],  $_POST['aliceblogs-categories']);
-            } else {
-                $new_cats = $_POST['aliceblogs-categories'];
-            }
-            wp_set_post_categories($post_id, $new_cats);
+            $media = get_category_by_slug($_POST['aliceblogs-categories']);
+            wp_set_post_categories($post_id, [$media->term_id, $media->parent]);
     
             $participants = [];
             foreach($_POST['aliceblogs-participants'] as $user_id){
@@ -833,72 +810,36 @@ class Aliceblogs {
             <h2 id="aliceblogs-metabox-title"><?= $year . ' - ' . $degree ?></h2>
             <?php
             // Find child categories to degree-year cat
-            $categories = get_categories($args);
-            // Get post category 
+            foreach(get_categories($args) as $category) {
+                if ($category->parent !== $year_category) {
+                    $sorted_categories[get_category($category->parent)->name][$category->slug] = $category->name;
+                }
+            }
+
+            // Build array with post's categories
             $post_categories = get_the_category($post->ID);
             $post_categories_slugs = [];
             foreach($post_categories as $cat_term) {
                 $post_categories_slugs[$cat_term->term_id] = $cat_term->slug;
             }
 
-            foreach($categories as $category) {
-                // autoselected post category
-                $checked = '';
-                if(in_array($category->slug, $post_categories_slugs)){
-                    $checked = 'checked';
+            //var_dump($post_categories_slugs);
+
+            foreach($sorted_categories as $key => $element) {
+                echo "<h4>" . $key . "</h4>";
+                foreach($element as $slug => $category) {
+                    // autoselected post category
+                    $checked = '';
+                    if(in_array($slug, $post_categories_slugs)){
+                        $checked = 'checked';
+                    }
+                    ?>
+                    <div>
+                        <input id="<?= $slug ?>" type="radio" value="<?= $slug ?>" name="aliceblogs-categories" <?= $checked ?>>
+                        <label class="aliceblogs-metabox-item" for="<?= $slug ?>"><?= $category ?></label>
+                    </div>
+                    <?php
                 }
-                ?>
-                <div>
-                    <input id="<?= $category->slug ?>" type="radio" value="<?= $category->term_id ?>" name="aliceblogs-categories[]" <?= $checked ?>>
-                    <label class="aliceblogs-metabox-item" for="<?= $category->slug ?>"><?= $category->name ?></label>
-                </div>
-                <?php
-            }
-            ?>
-        </div>
-        <?php
-    }
-
-    /**
-     * medias_metabox_content
-     *
-     * @param  mixed $post
-     * @return void
-     */
-    public function medias_metabox_content($post) {
-        $taxonomies = [ 
-            'taxonomy' => 'category'
-        ];
-        $args = [
-            'parent'     => self::default_medias_category_id,
-            'hide_empty' => false,
-            'hierarchical' => 1
-        ];
-
-        ?>
-        <div>
-            <h2 id="aliceblogs-metabox-title">Choisir un/des médias</h2>
-            <?php
-            $post_categories = get_the_category($post->ID);
-            $post_categories_slugs = [];
-
-            foreach($post_categories as $cat_term) {
-                $post_categories_slugs[$cat_term->term_id] = $cat_term->slug;
-            }
-            foreach(get_terms($taxonomies, $args) as $media) {
-                // autoselected post category
-                $checked = '';
-
-                if (in_array($media->slug, $post_categories_slugs)) {
-                    $checked = 'checked';
-                }
-
-                ?>
-                <div>
-                    <input id="media_<?= $media->slug ?>" type="checkbox" value="<?= $media->term_id ?>" name="aliceblogs-medias[]" <?= $checked ?>>
-                    <label class="aliceblogs-metabox-item" for="media_<?= $media->slug ?>"><?= $media->name ?></label>
-                </div>
-                <?php
             }
             ?>
         </div>
@@ -1034,19 +975,6 @@ class Aliceblogs {
      * @return void
      */
     public function get_medias() {
-        $taxonomies = [ 
-            'taxonomy' => 'category'
-        ];
-        $args = [
-            'parent'     => self::default_medias_category_id,
-            'hide_empty' => false
-        ];
-        $terms = get_terms($taxonomies, $args);
-        echo json_encode($terms);
-        die();
-    }
-
-    public function get_medias_2() {
         $elements = $_POST['elements'];
         $terms = [];
         $taxonomies = [ 

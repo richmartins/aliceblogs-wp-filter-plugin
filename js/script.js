@@ -236,61 +236,66 @@ jQuery(document).ready(function($){
         $('#aliceblogs-filter-medias').empty()
       } else {
         get_posts(elements_ids)
+        $('#aliceblogs-filter-medias-title').show()
 
         $.ajax({
           url: url,
           type: "POST",
           data: {
-            'action': 'get_medias2',
+            'action': 'get_medias',
             'elements': elements_ids
           }
         }).done(function(results) {
-        });
-        
-        $.ajax({
-          url: url,
-          type: "POST",
-          data: {
-            'action': 'get_medias'
-          }
-        }).done(function(results) {
-          $('#aliceblogs-filter-studios').empty()
           $('#aliceblogs-filter-medias').empty()
+          $('#aliceblogs-filter-studios').empty()
           $('#aliceblogs-filter-students').empty()
-          $('#aliceblogs-filter-medias-title').show()
-          $('#aliceblogs-filter-students-title').hide()
           $('#aliceblogs-filter-studios-title').hide()
+          $('#aliceblogs-filter-students-title').hide()
           let medias = JSON.parse(results)
+          let id = 0
           for (index in medias) {
-              $('#aliceblogs-filter-medias')
-              .append($('<input class="checkbox-tools" type="checkbox" id="media-' + medias[index]['term_id'] + '" name="media" value="' + medias[index]['slug'] + '">'))
-              .append($('<label class="for-checkbox-tools" for="media-' + medias[index]['term_id'] + '" >' + medias[index]['name'] + '</label>'))
-              //.append($('<br>'))
+            $('#aliceblogs-filter-medias')
+              .append($('<input class="checkbox-tools" type="checkbox" data-id="' + Object.keys(medias[index]) + '" id="media-' + id + '" value="' + id + '">'))
+              .append($('<label class="for-checkbox-tools" for="media-' + id + '" >' + index + '</label>'))
+            id++
           }
         });
       }
     })
+
+    // Format all ids in array
+    function build_medias_ids_list() {
+      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
+        return $(this).data('id');
+      }).get();
+      let medias_ids_formatted = []
+      for (const medias of medias_ids) {
+        if (typeof medias === 'string') {
+            for (const media of medias.split(',')) {
+              medias_ids_formatted.push(parseInt(media))
+            }
+        } else {
+          medias_ids_formatted.push(parseInt(medias))
+        }
+      }
+      return medias_ids_formatted
+    }
 
     $('#aliceblogs-filter-medias').change(function () {
       let degree_id = $('#aliceblogs-filter-degrees').find(":checked").attr('id').replace('degree-', '')
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function(){
         return $(this).attr('id').replace('element-', '');
       }).get();
-      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
-        return $(this).attr('id').replace('media-', '');
-      }).get();
-
-      $('#aliceblogs-filter-studios').empty()
-      $('#aliceblogs-filter-students').empty()
 
       if (elements_ids.length === 0) {
         get_posts(degree_id)
-        $('#aliceblogs-filter-studios-title').hide()
-      } else if (medias_ids.length === 0) {
+        $('#aliceblogs-filter-studios').empty()
+      } else if (build_medias_ids_list().length === 0) {
         get_posts(elements_ids)
         $('#aliceblogs-filter-studios-title').hide()
+        $('#aliceblogs-filter-studios').empty()
       } else {
-        get_posts(elements_ids, medias_ids)
+        get_posts(elements_ids, build_medias_ids_list())
         
         $.ajax({
           url: url,
@@ -298,10 +303,11 @@ jQuery(document).ready(function($){
           data: {
             'action': 'get_studios',
             'elements_ids': elements_ids,
-            'medias_ids': medias_ids
+            'medias_ids': build_medias_ids_list()
           }
         }).done(function(results) {
           $('#aliceblogs-filter-studios').empty()
+          $('#aliceblogs-filter-students').empty()
           $('#aliceblogs-filter-studios-title').show()
           $('#aliceblogs-filter-students-title').hide()
             let studios = JSON.parse(results)
@@ -324,16 +330,12 @@ jQuery(document).ready(function($){
         return $(this).attr('id').replace('studio-', '');
       }).get();
 
-      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
-        return $(this).attr('id').replace('media-', '');
-      }).get();
-
       if (studios_names.length === 0) {
-        get_posts(elements_ids, medias_ids)
+        get_posts(elements_ids, build_medias_ids_list())
         $('#aliceblogs-filter-students').empty()
         $('#aliceblogs-filter-students-title').hide()
       } else {
-        get_posts(elements_ids, medias_ids, studios_names)
+        get_posts(elements_ids, build_medias_ids_list(), studios_names)
         
         $.ajax({
           url: url,
@@ -366,18 +368,14 @@ jQuery(document).ready(function($){
         return $(this).attr('id').replace('studio-', '');
       }).get();
 
-      let medias_ids = $("#aliceblogs-filter-medias>input:checkbox:checked").map(function(){
-        return $(this).attr('id').replace('media-', '');
-      }).get();
-
       let elements_ids = $("#aliceblogs-filter-elements>input:checkbox:checked").map(function () {
         return $(this).attr('id').replace('element-', '');
       }).get();
 
       if (students_ids.length === 0) {
-        get_posts(elements_ids, studios_names, medias_ids)
+        get_posts(elements_ids, build_medias_ids_list(), studios_names)
       } else {
-        get_posts(elements_ids, medias_ids, null, students_ids)
+        get_posts(elements_ids, build_medias_ids_list(), null, students_ids)
       }
     })
 
