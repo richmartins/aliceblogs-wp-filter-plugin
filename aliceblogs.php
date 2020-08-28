@@ -16,7 +16,8 @@ class Aliceblogs {
         'author',
         'contributor',
         'subscriber',
-        'aliceblogs_teacher'
+        'aliceblogs_teacher',
+        'aliceblogs_super_teacher'
     ];
 
     const default_medias_category_id = 28;
@@ -48,17 +49,18 @@ class Aliceblogs {
         add_action('admin_menu', [$this, 'add_sidebar_menu_item']);
         add_action('admin_menu', [$this, 'disable_dashboard_widgets']);
         add_action('admin_menu', [$this, 'remove_tools']);
-        add_action('init', [$this, 'hide_gutenberg_elements']);
-
+        add_action('admin_enqueue_scripts', [$this, 'hide_gutenberg_elements'], 10, 1);
         add_action('add_meta_boxes', [$this, 'add_metabox']);
         add_action('save_post', [$this, 'save_metabox']);
-
         add_action('admin_init', [$this, 'create_teacher_role']);
-
         add_filter('wp_mail_from', [$this, 'wp_sender_email']);
         add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
         add_filter('the_content', [$this, 'single_post_metadata']);
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
+
+        
+        add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
+        add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
     }
 
     /**
@@ -75,16 +77,18 @@ class Aliceblogs {
     /**
      * Hide Gutenberg categories panel for all non-default WP roles
      */
-    public function hide_gutenberg_elements() {
+    public function hide_gutenberg_elements($hook) {
         $user = wp_get_current_user();
 
         // Hide Gutenberg blocks
-        wp_enqueue_script(
-            'wp-admin',
-            plugin_dir_url(__FILE__)  . '/js/wp-admin.js',
-            ['wp-blocks', 'wp-dom-ready', 'wp-edit-post']
-        );
-
+        if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
+            wp_enqueue_script(
+                'wp-admin',
+                plugin_dir_url(__FILE__)  . '/js/wp-admin.js',
+                ['wp-blocks', 'wp-dom-ready', 'wp-edit-post']
+            );
+        }
+        
         if (!in_array($user->roles[0], self::default_wp_roles)) {
             // script file
             wp_register_script(
@@ -150,7 +154,9 @@ class Aliceblogs {
         add_submenu_page('aliceblogs', 'Modifier', 'Modifier', 'aliceblogs_manage', 'edit-user', [$this, 'aliceblogs_edit_user']);
         add_submenu_page('aliceblogs', 'Studio', 'Studio', 'aliceblogs_manage', 'add-studio', [$this, 'aliceblogs_add_studio_dispatch']);
         
-        add_submenu_page('aliceblogs', 'DEBUG', 'DEBUG', 'aliceblogs_manage', 'debug-studio', [$this, 'aliceblogs_debug']);
+        if (current_user_can('administrator')) {
+            add_submenu_page('aliceblogs', 'DEBUG', 'DEBUG', 'aliceblogs_manage', 'debug-studio', [$this, 'aliceblogs_debug']);
+        }
     }
 
     /**
@@ -164,7 +170,6 @@ class Aliceblogs {
                 unset($actions['inline hide-if-no-js']);
             }
         }
-        
         return $actions;
     }
 
@@ -253,10 +258,32 @@ class Aliceblogs {
             'edit_others_posts' => true,
             'edit_private_posts' => true,
             'aliceblogs_manage' => true,
-            'manage_categories' => true
+            // 'manage_categories' => true
+        ];
+
+        $default_super_capabilities = [
+            'read' => true,
+            'edit_posts' => true,
+            'upload_files' => true,
+            'delete_posts' => true,
+            'publish_posts' => true,
+            'read_private_posts' => true,
+            'delete_published_posts' => true,
+            'delete_others_posts' => true,
+            'delete_private_posts' => true,
+            'edit_published_posts' => true,
+            'edit_others_posts' => true,
+            'edit_private_posts' => true,
+            'aliceblogs_manage' => true,
+            'manage_categories' => true,
+            'remove_users' => true,
+            'create_users' => true,
+            'list_users' => true,
+            'edit_users' => true
         ];
 
         add_role('aliceblogs_teacher', 'Teacher', $default_capabilities);
+        add_role('aliceblogs_super_teacher', 'Super Teacher', $default_super_capabilities);
     }
 
     /**
@@ -382,7 +409,7 @@ class Aliceblogs {
     }
 
     public function register_new_studio() {
-        if (!empty($_POST['role_name']) && !empty($_POST['role_year']) && !empty($_POST['role_degree'])) {
+        if (!empty($_POST['role_name']) && !empty($_POST['role_degree'])) {
             $default_capabilities = [
                 'read' => true,
                 'edit_posts' => true,
@@ -394,7 +421,7 @@ class Aliceblogs {
             ];
 
             $role_name = $_POST['role_name'];
-            $role_slug = strtolower(str_replace(' ', '_', $_POST['role_name'])) . '-' . $_POST['role_year'] . '-' . strtolower($_POST['role_degree']);
+            $role_slug = strtolower(str_replace(' ', '_', $_POST['role_name']) . '-' . strtolower($_POST['role_degree']));
             
             $result = add_role($role_slug, $role_name, $default_capabilities);
             if ($result instanceof WP_Role) {
@@ -413,6 +440,46 @@ class Aliceblogs {
      * New studio html page
      */
     public function add_studio_form($valid = null, $message = '') {
+        // get years + child without medias
+
+        $taxonomies = [ 
+            'taxonomy' => 'category'
+        ];
+
+        $args = [
+            'exclude' => [
+                1, 
+                self::default_medias_category_id
+            ],
+            'hide_empty' => false,
+         ];
+        
+        $terms = get_terms($taxonomies, $args);
+        $years = [];
+        $degree = [];
+
+        foreach($terms as $term) {
+            if($term->parent == 0){
+                $years[$term->term_id] = [
+                    'name' => $term->name,
+                    'slug' => $term->slug
+                ];
+            } 
+        }
+
+        foreach($terms as $term) {
+            if((array_key_exists($term->parent, $years)) && ($term->parent != self::default_medias_category_id)){
+                $degrees[$term->term_id] = [
+                    'name' => $term->name,
+                    'slug' => $term->slug,
+                    'parent' => $term->parent
+                ];
+            }
+        }
+
+        //order array by year
+        ksort($years);
+
         if ($valid){
             ?>
             <div class="notice notice-success is-dismissible aliceblogos-notice">
@@ -434,20 +501,27 @@ class Aliceblogs {
             <table class="form-table">
                 <tbody>
                     <tr class="form-field">
-                        <th scope="row"><label for="role_name">Nom du studio </label></th>
+                        <th scope="row"><label for="role_name">Nom</label></th>
                         <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= $_POST['role_name'] ?>" placeholder="ex: Studio ALICE"></td>
                     </tr>
-                    <tr class="form-field">
-                        <th scope="row"><label for="role_year">Année </label></th>
-                        <td><input name="role_year" class="aliceblogs-field-width" type="text" id="role_year" value="<?= $_POST['role_year'] ?>" placeholder="ex: <?= date('Y') ?>"></td>
-                    </tr>
-                    <tr class="form-field">
-                        <th scope="row"><label for="role_degree">Degré </label></th>
+                    <tr>
+                        <th scope="row">Classe</th>
                         <td>
-                            <select name="role_degree" id="role_degree">
-                                <option>Y1</option>
-                                <option>Y5</option>
-                            </select>
+                            <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
+                                <?php
+                                foreach($years as $id_year => $year) {
+                                        echo '<h2>' . $year['name'] .'</h2>';
+                                        foreach($degrees as $id_degree => $degree) {
+                                            if($degree['parent'] == $id_year) {
+                                                ?>
+                                                    <input id="<?= $degree['slug'] ?>" type="radio" name="role_degree" value="<?= $year['slug'] . '-' .$degree['name'] ?>" />
+                                                    <label for="<?= $degree['slug']?>"><?= $degree['name'] ?></label><br />
+                                                <?php
+                                            }
+                                        }
+                                    }
+                                ?>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -610,32 +684,92 @@ class Aliceblogs {
 
     
     public function aliceblogs_debug() {
-        echo "DEBUG MODE <br><br>";
+        echo "<h1>DEBUG MODE </h1><br><br>";
+        $taxonomies = [ 
+            'taxonomy' => 'category'
+        ];
+        $args = [
+            'parent'     => [24, 14],
+            'hide_empty' => false
+        ];
+        $terms = get_terms($taxonomies, $args);
+        var_dump($terms);
+        /*
+        WORK IN PROGESS 
+
+        var_dump(get_current_screen());
+
+        $search_string = "john doe";
+
+        global $wpdb;
+            
+        $wp_posts = $wpdb->prefix . "posts";
+        $wp_postmeta = $wpdb->prefix . 'postmeta';
+        $wp_term_relationships = $wpdb->prefix . "term_relationships";
+        $wp_terms = $wpdb->prefix . "terms";
+        $wp_users = $wpdb->prefix . "users";
+        $wp_usermeta = $wpdb->prefix . "usermeta";
+        
+        $sql = 
+        "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date
+        FROM " . $wp_posts . " as wp_posts 
+        INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id)
+        INNER JOIN " . $wp_postmeta . " as wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id) 
+        INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id)
+        INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID)
+        INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id
+        WHERE";
+
+        //$search = str_replace(' ', '%', $_POST['search_text']);
+        $search_terms_formatted = explode(",", $search_string);
+        //var_dump($search_terms . '<br><br><br>');
+        if (empty($search_terms_formatted)) {
+            // query has multiple search terms
+        } else {
+            //query has one term
+            $search = $search_terms_formatted;
+            $sql .= "((wp_taxonmy.name LIKE '%%%s%%' ) 
+               OR (wp_users.display_name LIKE '%%%s%%') 
+               OR (wp_posts.post_title LIKE '%%%s%%') 
+               OR (wp_usermeta.meta_value LIKE '%%%s%%')
+            )";
+        }
+
+        $sql .= "AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
+        
+        $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search]));
+        //var_dump($query_results);
+        var_dump($sql . '<br><br><br>');
+        */
     }
 
     /**
      * Save custom metabox (Categories & Medias)
      */
     public function save_metabox($post_id) {
-        if (isset($_POST['aliceblogs-medias']) && $_POST['aliceblogs-categories']) {
-            $new_cats = array_merge($_POST['aliceblogs-medias'],  $_POST['aliceblogs-categories']);
-        } else {
-            $new_cats = $_POST['aliceblogs-categories'];
-        }
-        wp_set_post_categories($post_id, $new_cats);
+        $user = wp_get_current_user();
 
-        $participants = [];
-        foreach($_POST['aliceblogs-participants'] as $user_id){
-            $user = get_user_by('ID', $user_id);
-            $participants[$user_id] = [
-                'name' => $user->user_nicename,
-                'display_name' => $user->display_name
-            ];
+        if (!in_array($user->roles[0], self::default_wp_roles)) {
+            if (isset($_POST['aliceblogs-medias']) && $_POST['aliceblogs-categories']) {
+                $new_cats = array_merge($_POST['aliceblogs-medias'],  $_POST['aliceblogs-categories']);
+            } else {
+                $new_cats = $_POST['aliceblogs-categories'];
+            }
+            wp_set_post_categories($post_id, $new_cats);
+    
+            $participants = [];
+            foreach($_POST['aliceblogs-participants'] as $user_id){
+                $user = get_user_by('ID', $user_id);
+                $participants[$user_id] = [
+                    'name' => $user->user_nicename,
+                    'display_name' => $user->display_name
+                ];
+            }
+    
+            //save the participants
+            //DANGER FUNCTION
+            update_post_meta($post_id, '_aliceblogs_participants', serialize($participants));
         }
-
-        //save the participants
-        //DANGER FUNCTION
-        update_post_meta($post_id, '_aliceblogs_participants', serialize($participants));
     }
 
     public function participants_metabox_content ($post) {
@@ -662,7 +796,7 @@ class Aliceblogs {
                 }
 
                 $checked = '';
-                if(in_array($user->ID, array_keys($users_already_participants))){
+                if(!empty($users_already_participants) && in_array($user->ID, array_keys($users_already_participants))){
                     $checked = 'checked';
                 }
                 ?>
@@ -911,6 +1045,25 @@ class Aliceblogs {
         echo json_encode($terms);
         die();
     }
+
+    public function get_medias_2() {
+        $elements = $_POST['elements'];
+        $terms = [];
+        $taxonomies = [ 
+            'taxonomy' => 'category'
+        ];
+        $args = [
+            'hide_empty' => false
+        ];
+        foreach ($elements as $element) {
+            $args['parent'] = $element;
+            foreach(get_terms($taxonomies, $args) as $term) {
+                $terms[$term->name][$term->term_id] = $term->slug;
+            }
+        }
+        echo json_encode($terms);
+        die();
+    }
     
     /**
      * get_degrees
@@ -1030,17 +1183,45 @@ class Aliceblogs {
             global $wpdb;
             
             $wp_posts = $wpdb->prefix . "posts";
+            $wp_postmeta = $wpdb->prefix . 'postmeta';
             $wp_term_relationships = $wpdb->prefix . "term_relationships";
             $wp_terms = $wpdb->prefix . "terms";
             $wp_users = $wpdb->prefix . "users";
             $wp_usermeta = $wpdb->prefix . "usermeta";
-
+            
+            $sql = 
+            "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date
+            FROM " . $wp_posts . " as wp_posts 
+            INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id)
+            INNER JOIN " . $wp_postmeta . " as wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id) 
+            INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id)
+            INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID)
+            INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id
+            WHERE";
+    
             //$search = str_replace(' ', '%', $_POST['search_text']);
-            $search = $_POST['search_text'];
-            
-            $sql = "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date FROM " . $wp_posts . " as wp_posts INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id) INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id) INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID) INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id AND ( ( wp_taxonmy.name LIKE '%%%s%%' ) OR (wp_users.display_name LIKE '%%%s%%') OR (wp_posts.post_title LIKE '%%%s%%') OR (wp_usermeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND (wp_posts.post_status = 'publish')";
-            
-            $query_results = $wpdb->get_results($wpdb->prepare($sql, $search, $search, $search, $search));
+            $search_terms = explode(",", $_POST['search_text']);
+            //var_dump($search_terms . '<br><br><br>');
+            if (empty($search_terms)) {
+                // query has multiple search terms
+                //$search = $search_terms
+                /**
+                 * WORK IN PROGESS
+                 */
+            } else {
+                //query has one term
+                $search = $_POST['search_text'];
+                $sql .= "((wp_taxonmy.name LIKE '%%%s%%' ) 
+                   OR (wp_users.display_name LIKE '%%%s%%') 
+                   OR (wp_posts.post_title LIKE '%%%s%%') 
+                   OR (wp_usermeta.meta_value LIKE '%%%s%%')
+                )";
+            }
+    
+            $sql .= "AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
+
+            $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search]));
+
             $results = [];
             
             foreach($query_results as $result) {

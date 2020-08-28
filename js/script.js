@@ -122,7 +122,7 @@ jQuery(document).ready(function($){
           $('#aliceblogs-filter-year')
           .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
           .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
-          .append($('<br>'))
+          //.append($('<br>'))
         }
 
         // auto select current year if exist in list & auto call get_degrees
@@ -184,7 +184,7 @@ jQuery(document).ready(function($){
               $('#aliceblogs-filter-degrees')
               .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
               .append($('<label class="for-checkbox-tools" for="degree-' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
-              .append($('<br>'))
+              //.append($('<br>'))
           }
       });
     }
@@ -218,7 +218,7 @@ jQuery(document).ready(function($){
                 $('#aliceblogs-filter-elements')
                 .append($('<input class="checkbox-tools" type="checkbox" id="element-' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
                 .append($('<label class="for-checkbox-tools" for="element-' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
-                .append($('<br>'))
+                //.append($('<br>'))
             }
         });
     }) 
@@ -232,8 +232,20 @@ jQuery(document).ready(function($){
       if (elements_ids.length === 0) {
         get_posts(degree_id)
         $('#aliceblogs-filter-studios-title').hide()
+        $('#aliceblogs-filter-medias-title').hide()
+        $('#aliceblogs-filter-medias').empty()
       } else {
         get_posts(elements_ids)
+
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: {
+            'action': 'get_medias2',
+            'elements': elements_ids
+          }
+        }).done(function(results) {
+        });
         
         $.ajax({
           url: url,
@@ -253,7 +265,7 @@ jQuery(document).ready(function($){
               $('#aliceblogs-filter-medias')
               .append($('<input class="checkbox-tools" type="checkbox" id="media-' + medias[index]['term_id'] + '" name="media" value="' + medias[index]['slug'] + '">'))
               .append($('<label class="for-checkbox-tools" for="media-' + medias[index]['term_id'] + '" >' + medias[index]['name'] + '</label>'))
-              .append($('<br>'))
+              //.append($('<br>'))
           }
         });
       }
@@ -297,7 +309,7 @@ jQuery(document).ready(function($){
                 $('#aliceblogs-filter-studios')
                 .append($('<input class="checkbox-tools" type="checkbox" id="studio-' + index + '" name="studios" value="' + studios[index] + '">'))
                 .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index] + '</label>'))
-                .append($('<br>'))
+                //.append($('<br>'))
             }
         });
       }

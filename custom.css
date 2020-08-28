@@ -18,7 +18,7 @@ body #login h1 a {
     display: flex;
     flex-direction: column;
     padding-right: 2em;
-    max-height: 220px;
+    max-height: 250px;
 }
 
 .box-h {
@@ -87,6 +87,7 @@ body #login h1 a {
     font-size: 14px;
     line-height: 20px;
     letter-spacing: 1px;
+    padding-bottom: .5em;
     /*margin: 0 auto;*/
     margin-right: 5px;
     text-align: left;
@@ -200,11 +201,22 @@ body #login h1 a {
     padding: 1em;
 }
 
+/*
 #aliceblogs-filter-students {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     max-height: 100%;
+    padding-bottom: .5em;
+}
+*/
+
+.aliceblogs-filter-column {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    max-height: 100%;
+    padding-bottom: .5em;
 }
 
 #aliceblogs-carddeck {

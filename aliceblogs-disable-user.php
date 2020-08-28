@@ -24,22 +24,26 @@ class Aliceblogs_Disable_User {
     /**
      * Add user profile page disable field
      */
-    public function disable_user_profile($user) {
-    ?>
-        <table class="form-table">
-            <tbody>
-                <tr>
-                    <th>
-                        <label for="disable_user">Désactiver le compte</label>
-                    </th>
-                    <td>
-                        <input type="checkbox" id="aliceblogs_disable_user" name="aliceblogs_disable_user" value="1" <?php checked(1, get_the_author_meta('aliceblogs_disable_user', $user->ID)); ?> />
-                        <span class="description">Si la case est cochée, l'utilisateur ne pourra plus se connecter</span>
-                    </td>
-                </tr>
-            <tbody>
-        </table>
-        <?php
+    public function disable_user_profile() {
+        $user = wp_get_current_user();
+        $allowed_roles = ['administrator', 'aliceblogs_super_teacher'];
+        if (array_intersect($user->roles, $allowed_roles)) {
+            ?>
+            <table class="form-table">
+                <tbody>
+                    <tr>
+                        <th>
+                            <label for="disable_user">Désactiver le compte</label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="aliceblogs_disable_user" name="aliceblogs_disable_user" value="1" <?php checked(1, get_the_author_meta('aliceblogs_disable_user', $user->ID)); ?> />
+                            <span class="description">Si la case est cochée, l'utilisateur ne pourra plus se connecter</span>
+                        </td>
+                    </tr>
+                <tbody>
+            </table>
+            <?php
+        }
     }
 
     /**
