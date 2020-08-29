@@ -259,6 +259,8 @@ jQuery(document).ready(function($){
               .append($('<label class="for-checkbox-tools" for="media-' + id + '" >' + index + '</label>'))
             id++
           }
+
+          adjust_div_width('#aliceblogs-filter-medias')
           
           // Add All button
           $('#aliceblogs-filter-medias').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
@@ -320,6 +322,8 @@ jQuery(document).ready(function($){
                 .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index] + '</label>'))
             }
 
+            adjust_div_width('#aliceblogs-filter-studios')
+
             // Add All button
             $('#aliceblogs-filter-studios').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
         });
@@ -358,6 +362,8 @@ jQuery(document).ready(function($){
               .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
               .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
           }
+
+          adjust_div_width('#aliceblogs-filter-students')
 
           // Add All button
           $('#aliceblogs-filter-students').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
@@ -446,7 +452,24 @@ jQuery(document).ready(function($){
       search_posts()
     })
 
-    
+    /**
+     * Workaround that fix an issue with flexbox width when using columns
+     * This function change the div width based on all elements. Flexbox CSS doesn't adapt the width automatically
+     * 
+     * According to : 
+     * https://stackoverflow.com/questions/23408539/how-can-i-make-a-displayflex-container-expand-horizontally-with-its-wrapped-con/26231447#26231447
+     * https://stackoverflow.com/questions/33891709/when-flexbox-items-wrap-in-column-mode-container-does-not-grow-its-width
+     * 
+     * @param {*} div_id 
+     */
+    function adjust_div_width(div_id) {
+      $(div_id).each(function(index) {
+        var lastChild = $(this).children().last();
+        var newWidth = lastChild.position().left - $(this).position().left + lastChild.outerWidth(true);
+        $(this).width(newWidth);
+      })
+    }
+
     /**
      * Check all column checkbox & trigger change event to refresh posts list
      */

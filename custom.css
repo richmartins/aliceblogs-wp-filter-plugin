@@ -18,7 +18,8 @@ body #login h1 a {
     display: flex;
     flex-direction: column;
     padding-right: 2em;
-    max-height: 250px;
+    padding-bottom: 2em;
+    max-height: 300px;
 }
 
 .box-h {
@@ -26,8 +27,8 @@ body #login h1 a {
     margin: 0 auto;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    color: var(--dark-grey);
 }
 
 @media screen and (max-width: 800px) {
@@ -60,9 +61,7 @@ body #login h1 a {
     --dark-light: #353746;
     --red: #da2c4d;
     --yellow: #f8ab37;
-    --light-grey: #ecedf3;
-    --grey:  #999999;
-    --dark-grey: #666;
+    --gray:  #bfbfbf;
 
 }
 
@@ -81,7 +80,7 @@ body #login h1 a {
 .checkbox-tools:not(:checked) + label{
     position: relative;
     display: inline-block;
-    /*padding: 0 .5em .5em 0;*/
+    padding: 0 2em .5em 0;
     /*width: 100%;*/
     min-width: 60px;
     font-size: 14px;
@@ -116,7 +115,7 @@ body #login h1 a {
     width: 100%;
     font-size: 20px;
     border: none;
-    border-bottom: 1px solid var(--light-grey);
+    border-bottom: 1px solid var(--gray);
 }
 
 #aliceblogs-searchbar:focus {
