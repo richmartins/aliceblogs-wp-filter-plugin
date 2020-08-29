@@ -219,6 +219,11 @@ body #login h1 a {
     padding-bottom: .5em;
 }
 
+.aliceblogs-filter-checkall {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 #aliceblogs-carddeck {
   column-count: 4; 
   column-gap: 8px; 

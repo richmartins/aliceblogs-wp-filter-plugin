@@ -122,7 +122,6 @@ jQuery(document).ready(function($){
           $('#aliceblogs-filter-year')
           .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
           .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
-          //.append($('<br>'))
         }
 
         // auto select current year if exist in list & auto call get_degrees
@@ -184,7 +183,6 @@ jQuery(document).ready(function($){
               $('#aliceblogs-filter-degrees')
               .append($('<input class="checkbox-tools" type="radio" id="degree-' + degrees[index].term_taxonomy_id + '" name="degrees" value="' + degrees[index].name + '">'))
               .append($('<label class="for-checkbox-tools" for="degree-' + degrees[index].term_taxonomy_id + '" >' + degrees[index].name + '</label>'))
-              //.append($('<br>'))
           }
       });
     }
@@ -218,8 +216,10 @@ jQuery(document).ready(function($){
                 $('#aliceblogs-filter-elements')
                 .append($('<input class="checkbox-tools" type="checkbox" id="element-' + elements[index].term_taxonomy_id + '" name="elements" value="' + elements[index].name + '">'))
                 .append($('<label class="for-checkbox-tools" for="element-' + elements[index].term_taxonomy_id + '" >' + elements[index].name + '</label>'))
-                //.append($('<br>'))
             }
+            
+            // Add All button
+            $('#aliceblogs-filter-elements').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
         });
     }) 
 
@@ -259,6 +259,9 @@ jQuery(document).ready(function($){
               .append($('<label class="for-checkbox-tools" for="media-' + id + '" >' + index + '</label>'))
             id++
           }
+          
+          // Add All button
+          $('#aliceblogs-filter-medias').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
         });
       }
     })
@@ -315,8 +318,10 @@ jQuery(document).ready(function($){
                 $('#aliceblogs-filter-studios')
                 .append($('<input class="checkbox-tools" type="checkbox" id="studio-' + index + '" name="studios" value="' + studios[index] + '">'))
                 .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index] + '</label>'))
-                //.append($('<br>'))
             }
+
+            // Add All button
+            $('#aliceblogs-filter-studios').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
         });
       }
     })
@@ -353,6 +358,9 @@ jQuery(document).ready(function($){
               .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
               .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
           }
+
+          // Add All button
+          $('#aliceblogs-filter-students').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
         });
         
       }
@@ -436,6 +444,14 @@ jQuery(document).ready(function($){
       $('#aliceblogs-searchbar').val($(this).text().substring(1))
       $('#aliceblogs-filter').hide()
       search_posts()
+    })
+
+    
+    /**
+     * Check all column checkbox & trigger change event to refresh posts list
+     */
+    $(document).on('click', '.aliceblogs-filter-checkall', function(){
+      $(this).parent().find('input').not(this).prop('checked', 'checked').trigger('change')
     })
 
     // from : https://github.com/jessekorzan/css-masonry/blob/master/app.js
