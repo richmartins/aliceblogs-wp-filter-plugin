@@ -97,7 +97,7 @@ jQuery(document).ready(function($){
                 'categories': categories,
                 'medias': medias,
                 'roles': studios,
-                'users': students
+                'students': students
             },
             beforeSend: function() {
               toggle_loader()
@@ -219,7 +219,7 @@ jQuery(document).ready(function($){
             }
             
             // Add All button
-            $('#aliceblogs-filter-elements').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
+            addAllBtn($('#aliceblogs-filter-elements'));
         });
     }) 
 
@@ -232,8 +232,11 @@ jQuery(document).ready(function($){
       if (elements_ids.length === 0) {
         get_posts(degree_id)
         $('#aliceblogs-filter-studios-title').hide()
+        $('#aliceblogs-filter-studios').empty() 
         $('#aliceblogs-filter-medias-title').hide()
         $('#aliceblogs-filter-medias').empty()
+        $('#aliceblogs-filter-students').empty()
+        $('#aliceblogs-filter-students-title').hide()
       } else {
         get_posts(elements_ids)
         $('#aliceblogs-filter-medias-title').show()
@@ -263,7 +266,7 @@ jQuery(document).ready(function($){
           adjust_div_width('#aliceblogs-filter-medias')
           
           // Add All button
-          $('#aliceblogs-filter-medias').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
+          addAllBtn($('#aliceblogs-filter-medias'));
         });
       }
     })
@@ -325,7 +328,7 @@ jQuery(document).ready(function($){
             adjust_div_width('#aliceblogs-filter-studios')
 
             // Add All button
-            $('#aliceblogs-filter-studios').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
+            addAllBtn($('#aliceblogs-filter-studios'));
         });
       }
     })
@@ -366,7 +369,7 @@ jQuery(document).ready(function($){
           adjust_div_width('#aliceblogs-filter-students')
 
           // Add All button
-          $('#aliceblogs-filter-students').append($('<label class="aliceblogs-filter-checkall" >All</label>'))
+          addAllBtn($('#aliceblogs-filter-students'));
         });
         
       }
@@ -403,6 +406,12 @@ jQuery(document).ready(function($){
       timer = setTimeout(callback, ms);
      };
     })();
+
+    function addAllBtn(element){
+      if (element.children().length > 0){
+        element.append($('<label class="aliceblogs-filter-checkall" >all</label>'));
+      }
+    }
 
     function search_posts() {
       $.ajax({
@@ -463,10 +472,12 @@ jQuery(document).ready(function($){
      * @param {*} div_id 
      */
     function adjust_div_width(div_id) {
-      $(div_id).each(function(index) {
+      $(div_id).each(function() {
         var lastChild = $(this).children().last();
-        var newWidth = lastChild.position().left - $(this).position().left + lastChild.outerWidth(true);
-        $(this).width(newWidth);
+        if (lastChild.length > 0){
+          var newWidth = lastChild.position().left - $(this).position().left + lastChild.outerWidth(true);
+          $(this).width(newWidth);
+        }
       })
     }
 
@@ -474,7 +485,8 @@ jQuery(document).ready(function($){
      * Check all column checkbox & trigger change event to refresh posts list
      */
     $(document).on('click', '.aliceblogs-filter-checkall', function(){
-      $(this).parent().find('input').not(this).prop('checked', 'checked').trigger('change')
+      $(this).parent().find('input').not(this).prop('checked', 'checked')
+      $(this).parent().trigger('change')
     })
 
     // from : https://github.com/jessekorzan/css-masonry/blob/master/app.js

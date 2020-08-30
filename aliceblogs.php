@@ -900,10 +900,15 @@ class Aliceblogs {
     public function get_posts(){
         $categories = $_POST['categories'];
         $medias = $_POST['medias'];
+        $users = $_POST['students'];
 
-        $users = $_POST['users'];
+        // Merge all categories & medias in a single string
+        if (!empty($medias)) {
+            $categories = array_merge($categories, $medias);
+        }
+
         // Get all users from selected studios
-        if(is_array($_POST['roles'])){
+        if(is_array($_POST['roles']) && empty($users)){
             $users = [];
             foreach($_POST['roles'] as $role) {
                 $users_belongs_to_role = get_users(['role' => $role]);
@@ -912,6 +917,7 @@ class Aliceblogs {
                 }
             }
         }
+        $users = implode(",", $users);
 
         // Create WP Query to filter posts authors & categories
         $args = [
@@ -919,11 +925,40 @@ class Aliceblogs {
             'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
-            'author' => implode(",", $users)
+            'author' => $users
         ];
+
         $query = new WP_Query($args);
 
-        foreach($query->posts as $post){
+        // create second query if users are selected 
+        // this query will be used for meta values (participants)
+        if (!empty($_POST['students'])) {
+            $args2 = [
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'posts_per_page' => -1,
+                'cat' => $categories,
+            ];
+
+            $args2_meta_query = [];
+            foreach($_POST['students'] as $student) {
+                $student_obj = get_user_by('ID', $student);
+                $meta_search = [
+                    'key'     => '_aliceblogs_participants',
+                    'value'   => $student_obj->display_name,
+                    'compare' => 'LIKE'
+                ];
+                array_push($args2_meta_query, $meta_search);
+            }
+            $args2['meta_query'] = $args2_meta_query;
+            $args2['meta_query']['relation'] = 'OR';
+            $query2 = new WP_Query($args2);
+            $query_results = array_merge($query->posts, $query2->posts);
+        } else {
+            $query_results = $query->posts;
+        }
+
+        foreach($query_results as $post){
             $data = [
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
