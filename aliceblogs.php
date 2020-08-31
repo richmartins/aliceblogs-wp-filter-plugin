@@ -1142,6 +1142,7 @@ class Aliceblogs {
     public function search_posts() {
         if(isset($_POST['search_text'])){
             global $wpdb;
+            $search = $_POST['search_text'];
             
             $wp_posts = $wpdb->prefix . "posts";
             $wp_postmeta = $wpdb->prefix . 'postmeta';
@@ -1158,33 +1159,15 @@ class Aliceblogs {
             INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id)
             INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID)
             INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id
-            WHERE";
-    
-            //$search = str_replace(' ', '%', $_POST['search_text']);
-            $search_terms = explode(",", $_POST['search_text']);
-            //var_dump($search_terms . '<br><br><br>');
-            if (empty($search_terms)) {
-                // query has multiple search terms
-                //$search = $search_terms
-                /**
-                 * WORK IN PROGESS
-                 */
-            } else {
-                //query has one term
-                $search = $_POST['search_text'];
-                $sql .= "((wp_taxonmy.name LIKE '%%%s%%' ) 
-                   OR (wp_users.display_name LIKE '%%%s%%') 
-                   OR (wp_posts.post_title LIKE '%%%s%%') 
-                   OR (wp_usermeta.meta_value LIKE '%%%s%%')
-                )";
-            }
-    
-            $sql .= "AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
+            WHERE (((wp_taxonmy.name LIKE '%%%s%%' ) 
+            OR (wp_users.display_name LIKE '%%%s%%') 
+            OR (wp_posts.post_title LIKE '%%%s%%') 
+            OR (wp_usermeta.meta_value LIKE '%%%s%%')
+            ) OR (wp_postmeta.meta_key = '_aliceblogs_participants' AND wp_postmeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
 
-            $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search]));
+            $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search, $search]));
 
             $results = [];
-            
             foreach($query_results as $result) {
                 $results[$result->ID] = [
                     'title'     => $result->post_title,
