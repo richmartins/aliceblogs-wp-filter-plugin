@@ -9,3 +9,7 @@ wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'post-link' ); // permali
 wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'page-attributes' ); // page attributes
 wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'post-excerpt' ); // Excerpt
 wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'discussion-panel' ); // Discussion
+wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'meta-box-members-cp' );
+wp.data.dispatch('core/edit-post').removeEditorPanel( 'meta-box-et_settings_meta_box_gutenberg' );
+wp.data.dispatch( 'core/edit-post').removeEditorPanel( 'meta-box-postcostum' );
+

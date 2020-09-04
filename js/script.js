@@ -144,7 +144,7 @@ jQuery(document).ready(function($){
       }).done(function(results) {
         let tags = JSON.parse(results)
         html = ''
-        html += '<p id="aliceblogs-searchbar-proposal-title">Trends : </p>'
+        // html += '<p id="aliceblogs-searchbar-proposal-title">Trends : </p>'
         for(index in tags) {
           html += '<div class="proposal-tag">' + tags[index] + '</div>'
         }
@@ -320,9 +320,10 @@ jQuery(document).ready(function($){
           $('#aliceblogs-filter-students-title').hide()
             let studios = JSON.parse(results)
             for (index in studios) {
+
                 $('#aliceblogs-filter-studios')
                 .append($('<input class="checkbox-tools" type="checkbox" id="studio-' + index + '" name="studios" value="' + studios[index] + '">'))
-                .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index] + '</label>'))
+                  .append($('<label class="for-checkbox-tools" for="studio-' + index + '" >' + studios[index].replace(/studio/gi, '') + '</label>'))
             }
 
             adjust_div_width('#aliceblogs-filter-studios')

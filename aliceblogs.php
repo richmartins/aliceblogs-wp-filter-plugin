@@ -53,12 +53,14 @@ class Aliceblogs {
         add_action('add_meta_boxes', [$this, 'add_metabox']);
         add_action('save_post', [$this, 'save_metabox']);
         add_action('admin_init', [$this, 'create_teacher_role']);
+        add_action('after_setup_theme', [$this, 'remove_posts_format'], 15); 
+        add_action( 'add_meta_boxes', [$this, 'remove_members_metabox'], 11);
         add_filter('wp_mail_from', [$this, 'wp_sender_email']);
         add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
         add_filter('the_content', [$this, 'single_post_metadata']);
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
 
-        
+
         add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
         add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
     }
@@ -74,6 +76,25 @@ class Aliceblogs {
         }
     }
     
+    /**
+     * remove_members_metabox
+     *
+     * @return void
+     */
+    public function remove_members_metabox(){
+        remove_meta_box( 'members-cp', 'post', 'advanced');
+        remove_meta_box( 'et_settings_meta_box', 'post', 'advanced');
+    }
+
+    /**
+     * remove_posts_formats
+     *
+     * @return void
+     */
+    public function remove_posts_format(){
+        remove_theme_support('post-formats');
+    }
+
     /**
      * Hide Gutenberg categories panel for all non-default WP roles
      */
@@ -881,13 +902,26 @@ class Aliceblogs {
         // Show post categories
         if ($categories) {
             $cats_badges = '';
-            foreach ($categories as $category) {
-                $cats_badges .= $category->name . ' ';
+            foreach (array_reverse($categories) as $category) {
+                $categories_separeted = explode(' ', $category->name);
+                $link = '';
+                if(is_array($categories_separeted)){
+                    foreach($categories_separeted as $value) {
+                        $link .= '<a class="aliceblogs-post-metadata-categories" href="/?q='.$value.'" >'.$value.'</a> ';
+                    }
+                    $cats_badges .= $link;
+                }else {
+                    $cats_badges .= '<a href="/?q=' . $category->name . '" >' . $category->name . '</a> ';
+                }
             }
         }
-
+        
+   
         /* Bulding post's meta data */
-        $content = 'par ' . $author . $participants . ' | ' . $date . ' | ' .  $cats_badges . ' | ' . $role_name . ' ' . $tags . '<br><br>' . $content;
+        $content = 'par ' . $author . $participants 
+        . ' | ' . $date 
+        . ' | <!-- <span class="aliceblogs-post-metadata-categories> -->' . $cats_badges 
+        . '<!-- </span> --> | ' . $role_name . ' '. $tags . '<br><br>' . $content;
 
         return $content;
     }
@@ -996,6 +1030,7 @@ class Aliceblogs {
             'hide_empty' => false,
             'exclude'    => [1, self::default_medias_category_id]
         ];
+
         $terms = get_terms($taxonomies, $args);
         echo json_encode($terms);
         die();
@@ -1038,7 +1073,7 @@ class Aliceblogs {
             ];
             $args = [
                 'parent'     => $_POST['year_id'],
-                'hide_empty' => false
+                'hide_empty' => false,
             ];
             $terms = get_terms($taxonomies, $args);
             echo json_encode($terms);
@@ -1059,7 +1094,9 @@ class Aliceblogs {
             $args = [
                 'parent'     => $_POST['degree_id'],
                 'hide_empty' => false,
-                'exclude'    => 1
+                'exclude'    => 1,
+                'order' => 'DESC',
+                'orderby' => 'count'
             ];
             $terms = get_terms($taxonomies, $args);
             echo json_encode($terms);
@@ -1194,7 +1231,7 @@ class Aliceblogs {
             'taxonomy' => 'post_tag',
             'orderby' => 'count',
             'order' => 'DESC',
-            'number' => 5
+            'number' => 2
         ];
 
         $tags = [];

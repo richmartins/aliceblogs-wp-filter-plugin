@@ -18,8 +18,8 @@ body #login h1 a {
     display: flex;
     flex-direction: column;
     padding-right: 2em;
-    padding-bottom: 2em;
-    max-height: 320px;
+    padding-bottom: .1em;
+    max-height: 380px;
 }
 
 .box-h {
@@ -86,7 +86,7 @@ body #login h1 a {
     font-size: 14px;
     line-height: 20px;
     letter-spacing: 1px;
-    padding-bottom: .5em;
+    padding-bottom: .2em;
     /*margin: 0 auto;*/
     margin-right: 5px;
     text-align: left;
@@ -105,6 +105,7 @@ body #login h1 a {
 
 #aliceblogs-header {
     display: flex;
+    height: 46px;
 }
 
 #aliceblogs-header-menu {
@@ -113,7 +114,7 @@ body #login h1 a {
 
 #aliceblogs-searchbar {
     width: 100%;
-    font-size: 20px;
+    font-size: 1.2em;
     border: none;
     border-bottom: 1px solid var(--gray);
 }
@@ -126,11 +127,14 @@ body #login h1 a {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    margin-top: 1em;
+    margin-top: .1em;
 }
 
 .proposal-tag {
     margin-right: 1em;
+}
+.aliceblogs-post-metadata-categories{
+    text-transform: uppercase;
 }
 
 .proposal-tag:hover {
@@ -200,16 +204,20 @@ body #login h1 a {
     padding: 1em;
 }
 
-/*
-#aliceblogs-filter-students {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    max-height: 100%;
-    padding-bottom: .5em;
+.aliceblogs-top-bar-instalink {
+    display: inline-block;
+    width: 100%;
+    text-align: right;
 }
-*/
 
+#aliceblogs-filter-students > label {
+    font-size: .8em;
+}
+
+.aliceblogs-top-bar-instalink > a > i {
+    color: var(--gray);
+    font-size: 1.6em;
+}
 .aliceblogs-filter-column {
     display: flex;
     flex-direction: column;
@@ -219,8 +227,9 @@ body #login h1 a {
 }
 
 .aliceblogs-filter-checkall {
-    text-decoration: underline;
+    font-style: italic;
     cursor: pointer;
+    color: var(--gray);
 }
 
 #aliceblogs-carddeck {
@@ -253,16 +262,33 @@ a.aliceblogs-card > .aliceblogs-card-container {
 .aliceblogs-card-img {
     width: 100%;
     height: auto;
-
 }
 
 
+.et_pb_menu_0_tb_header > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
+    margin-bottom: .3em;
+}
+
+.visible{
+    visibility: visible;
+}
 .aliceblogs-card-text {
-    text-align: center;
+    text-transform: lowercase;
+    font-size: 1em;
     visibility: hidden;
     opacity: 0;
-    transition: visibility 0s, opacity 0.5s linear;
+    text-align: center;
 }
+
+.aliceblogs-card-text:first-letter{
+    text-transform: capitalize;
+}
+
+a.aliceblogs-card:hover > div.aliceblogs-card-container > .aliceblogs-card-text {
+    visibility: visible;
+    opacity: 1;
+}
+
 @media screen and (max-width: 800px){
     .aliceblogs-card-text {
         visibility: visible;
@@ -274,11 +300,6 @@ a.aliceblogs-card > .aliceblogs-card-container {
     }
 }
 
-.aliceblogs-card:hover .aliceblogs-card-text {
-    visibility: visible;
-    opacity: 1;
-}
-
 .aliceblogs-nocard {
     color: var(--grey);
     font-size: 20px;
@@ -288,7 +309,7 @@ a.aliceblogs-card > .aliceblogs-card-container {
     display: flex; 
     /*justify-content: space-between; */
     /*width: 50px;*/
-    height: 30px;
+    height: 20px;
     color: var(--black);
 }
 
@@ -301,18 +322,18 @@ a.aliceblogs-card > .aliceblogs-card-container {
 }
 
 #aliceblogs-view-mosaic {
-    width: 30px;
+    width: 20px;
     background-image: url('images/card_layout.svg');
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: contain;
     margin-right: 10px;
 }
 
 #aliceblogs-view-list {
-    width: 30px;
+    width: 20px;
     background-image: url('images/list_layout.svg');
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: contain;
 }
 
 .aliceblogs-list {
@@ -404,3 +425,4 @@ a.aliceblogs-card > .aliceblogs-card-container {
     from {-webkit-transform: rotate(0deg);}
     to {-webkit-transform: rotate(360deg);}
  }
+
