@@ -124,9 +124,23 @@ jQuery(document).ready(function($){
           .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
         }
 
-        // auto select current year if exist in list & auto call get_degrees
-        let current_year = new Date().getFullYear()
-        selected_year_exist = years.find(year => year.name == current_year)
+        // auto select current school year if exist 
+        let current_school_year = ''
+        let current_year = new Date().getFullYear().toString().substr(-2)
+
+        // Check if current period is september to december or january to july
+        if ((new Date()).getMonth() >= 8) {
+          // 1st semester of the school year : current year - next year
+          let next_year = (new Date().getFullYear()+1).toString().substr(-2)
+          current_school_year = current_year + '-' + next_year
+        } else {
+          // 2nd semester of the school year : last year - current year
+          let last_year = (new Date().getFullYear()+1).toString().substr(-1)
+          current_school_year = last_year + '-' + current_year
+        }
+        selected_year_exist = years.find(year => year.name == current_school_year)
+
+        // Auto call get_degrees
         if (selected_year_exist) {
           $('#year-' + selected_year_exist.term_id).attr('checked','checked')
           get_degrees()

@@ -1,3 +1,13 @@
+jQuery(document).ready(function($){
+    // Uncheck all medias from other categories in metabox
+    $("#aliceblogs-categories-container-checkbox input[type='checkbox']").change(function() {
+        let parent_id = $(this).parent().parent().attr('id')
+        $(".aliceblogs-categories-checkbox[id!='" + parent_id + "']").each(function() {
+          $(this).children().children().prop('checked',false)
+        });
+    })
+})
+
 wp.domReady( function() {
     // List all available blocks
     // wp.data.select( 'core/blocks' ).getBlockTypes()

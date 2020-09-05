@@ -396,6 +396,15 @@ a.aliceblogs-card:hover > div.aliceblogs-card-container > .aliceblogs-card-text 
     margin-right: 1em;
 }
 
+/** Hide Gutenberg block (Members Upgrade & WP Inspector)**/
+.members-upsell {
+    display: none !important;
+}
+
+.block-editor-block-inspector__advanced {
+    display: none !important;
+}
+
 /***** LOADER *****/
 
 #container-loader {

@@ -25,6 +25,7 @@ class Aliceblogs {
     public function __construct(){
         wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
+
         add_action('wp_enqueue_scripts', [$this, 'load_scripts']);
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_get_years', [$this, 'get_years']);
@@ -53,14 +54,12 @@ class Aliceblogs {
         add_action('add_meta_boxes', [$this, 'add_metabox']);
         add_action('save_post', [$this, 'save_metabox']);
         add_action('admin_init', [$this, 'create_teacher_role']);
-        add_action('after_setup_theme', [$this, 'remove_posts_format'], 15); 
-        add_action( 'add_meta_boxes', [$this, 'remove_members_metabox'], 11);
+        add_action('after_setup_theme', [$this, 'remove_posts_format'], 15);
+
         add_filter('wp_mail_from', [$this, 'wp_sender_email']);
         add_filter('wp_mail_from_name', [$this, 'wp_sender_name']);
         add_filter('the_content', [$this, 'single_post_metadata']);
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
-
-
         add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
         add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
     }
@@ -74,16 +73,6 @@ class Aliceblogs {
             wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
-    }
-    
-    /**
-     * remove_members_metabox
-     *
-     * @return void
-     */
-    public function remove_members_metabox(){
-        remove_meta_box( 'members-cp', 'post', 'advanced');
-        remove_meta_box( 'et_settings_meta_box', 'post', 'advanced');
     }
 
     /**
@@ -744,14 +733,21 @@ class Aliceblogs {
     }
 
     /**
-     * Save custom metabox (Categories & Medias)
+     * Save custom metabox (Categories & Participants)
      */
     public function save_metabox($post_id) {
         $user = wp_get_current_user();
 
         if (!in_array($user->roles[0], self::default_wp_roles) && isset($_POST['aliceblogs-categories'])) {
-            $media = get_category_by_slug($_POST['aliceblogs-categories']);
-            wp_set_post_categories($post_id, [$media->term_id, $media->parent]);
+            
+            $medias = [];
+            foreach($_POST['aliceblogs-categories'] as $term) {
+                $media = get_category_by_slug($term);
+                array_push($medias, $media->term_id);
+                $medias['parent'] = $media->parent;
+            }
+
+            wp_set_post_categories($post_id, $medias);
     
             $participants = [];
             foreach($_POST['aliceblogs-participants'] as $user_id){
@@ -825,7 +821,7 @@ class Aliceblogs {
         ];
 
         ?>
-        <div>
+        <div id="aliceblogs-categories-container-checkbox">
             <h2 id="aliceblogs-metabox-title"><?= $year . ' - ' . $degree ?></h2>
             <?php
             // Find child categories to degree-year cat
@@ -846,6 +842,7 @@ class Aliceblogs {
 
             foreach($sorted_categories as $key => $element) {
                 echo "<h4>" . $key . "</h4>";
+                echo '<div id="' . $key . '" class="aliceblogs-categories-checkbox" >';
                 foreach($element as $slug => $category) {
                     // autoselected post category
                     $checked = '';
@@ -854,11 +851,12 @@ class Aliceblogs {
                     }
                     ?>
                     <div>
-                        <input id="<?= $slug ?>" type="radio" value="<?= $slug ?>" name="aliceblogs-categories" <?= $checked ?>>
+                        <input id="<?= $slug ?>" type="checkbox" value="<?= $slug ?>" name="aliceblogs-categories[]" <?= $checked ?>>
                         <label class="aliceblogs-metabox-item" for="<?= $slug ?>"><?= $category ?></label>
                     </div>
                     <?php
                 }
+                echo "</div>";
             }
             ?>
         </div>
@@ -1095,8 +1093,7 @@ class Aliceblogs {
                 'parent'     => $_POST['degree_id'],
                 'hide_empty' => false,
                 'exclude'    => 1,
-                'order' => 'DESC',
-                'orderby' => 'count'
+                'orderby'    => 'order'
             ];
             $terms = get_terms($taxonomies, $args);
             echo json_encode($terms);
