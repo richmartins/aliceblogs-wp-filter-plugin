@@ -684,52 +684,14 @@ class Aliceblogs {
     public function aliceblogs_debug() {
         echo "<h1>DEBUG MODE </h1><br><br>";
         /*
-        WORK IN PROGESS 
-
-        var_dump(get_current_screen());
-
-        $search_string = "john doe";
-
-        global $wpdb;
-            
-        $wp_posts = $wpdb->prefix . "posts";
-        $wp_postmeta = $wpdb->prefix . 'postmeta';
-        $wp_term_relationships = $wpdb->prefix . "term_relationships";
-        $wp_terms = $wpdb->prefix . "terms";
-        $wp_users = $wpdb->prefix . "users";
-        $wp_usermeta = $wpdb->prefix . "usermeta";
-        
-        $sql = 
-        "SELECT DISTINCT wp_posts.ID, wp_posts.post_title, wp_posts.post_content, wp_posts.guid, wp_users.display_name, wp_posts.post_date
-        FROM " . $wp_posts . " as wp_posts 
-        INNER JOIN " . $wp_term_relationships . " as wp_terms_rel ON (wp_posts.ID = wp_terms_rel.object_id)
-        INNER JOIN " . $wp_postmeta . " as wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id) 
-        INNER JOIN " . $wp_terms . " as wp_taxonmy ON (wp_terms_rel.term_taxonomy_id = wp_taxonmy.term_id)
-        INNER JOIN " . $wp_users . " as wp_users ON (wp_posts.post_author = wp_users.ID)
-        INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id
-        WHERE";
-
-        //$search = str_replace(' ', '%', $_POST['search_text']);
-        $search_terms_formatted = explode(",", $search_string);
-        //var_dump($search_terms . '<br><br><br>');
-        if (empty($search_terms_formatted)) {
-            // query has multiple search terms
-        } else {
-            //query has one term
-            $search = $search_terms_formatted;
-            $sql .= "((wp_taxonmy.name LIKE '%%%s%%' ) 
-               OR (wp_users.display_name LIKE '%%%s%%') 
-               OR (wp_posts.post_title LIKE '%%%s%%') 
-               OR (wp_usermeta.meta_value LIKE '%%%s%%')
-            )";
-        }
-
-        $sql .= "AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
-        
-        $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search]));
-        //var_dump($query_results);
-        var_dump($sql . '<br><br><br>');
+        $sticky = get_option( 'sticky_posts' );
+        rsort($sticky);
+        $sticky_posts = new WP_Query(['post__in' => $sticky, 'ignore_sticky_posts' => 1]);
+        $posts_without_sticky = new WP_Query(['post__not_in' => $sticky, 'ignore_sticky_posts' => 1]);
+        $posts = array_merge($sticky_posts->posts, $posts_without_sticky->posts);
+        var_dump($posts);
         */
+    
     }
 
     /**
@@ -877,9 +839,12 @@ class Aliceblogs {
         $date = get_the_date('j/m/Y');
         $categories = get_the_category();
         $posttags = get_the_tags();
-        $participants  = unserialize(get_post_meta(get_the_ID(), '_aliceblogs_participants')[0]);
-        if(!empty($participants)){
-            $participants = ', ' . implode(', ', array_column($participants, 'display_name'));
+        $participants_meta  = unserialize(get_post_meta(get_the_ID(), '_aliceblogs_participants')[0]);
+        $participants_badges = '';
+        if(!empty($participants_meta)){
+            foreach($participants_meta as $participant) {
+                $participants_badges .= ', <a href="/?q=' . $participant['display_name'] . '" >' . $participant['display_name'] . '</a>';
+            }
         }else {
             $participants = '';
         }
@@ -900,26 +865,23 @@ class Aliceblogs {
         // Show post categories
         if ($categories) {
             $cats_badges = '';
-            foreach (array_reverse($categories) as $category) {
-                $categories_separeted = explode(' ', $category->name);
-                $link = '';
-                if(is_array($categories_separeted)){
-                    foreach($categories_separeted as $value) {
-                        $link .= '<a class="aliceblogs-post-metadata-categories" href="/?q='.$value.'" >'.$value.'</a> ';
-                    }
-                    $cats_badges .= $link;
-                }else {
-                    $cats_badges .= '<a href="/?q=' . $category->name . '" >' . $category->name . '</a> ';
+            foreach($categories as $key => $category) {
+                $cats_badges .= '<a class="aliceblogs-post-metadata-categories" href="/?q=' . $category->name . '" >' . $category->name . '</a>';
+                if (array_key_last($categories) != $key) {
+                    $cats_badges .= ', ';
                 }
             }
         }
         
    
         /* Bulding post's meta data */
-        $content = 'par ' . $author . $participants 
+        $content = 'par ' 
+        . '<a href="/?q=' . $author . '" >' . $author . '</a>' 
+        . $participants_badges 
         . ' | ' . $date 
-        . ' | <!-- <span class="aliceblogs-post-metadata-categories> -->' . $cats_badges 
-        . '<!-- </span> --> | ' . $role_name . ' '. $tags . '<br><br>' . $content;
+        . ' | ' . $cats_badges 
+        . ' | ' . '<a href="/?q=' . $role_name . '" >' . $role_name . '</a>' 
+        . ' '. $tags . '<br><br>' . $content;
 
         return $content;
     }
@@ -962,7 +924,7 @@ class Aliceblogs {
 
         $query = new WP_Query($args);
 
-        // create second query if users are selected 
+        // create second query if users are selected in filter
         // this query will be used for meta values (participants)
         if (!empty($_POST['students'])) {
             $args2 = [

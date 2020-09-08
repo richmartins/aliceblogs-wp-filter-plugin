@@ -500,7 +500,14 @@ jQuery(document).ready(function($){
      * Check all column checkbox & trigger change event to refresh posts list
      */
     $(document).on('click', '.aliceblogs-filter-checkall', function(){
-      $(this).parent().find('input').not(this).prop('checked', 'checked')
+      if (!$(this).val() || $(this).val() == '') {
+        $(this).addClass('clicked');
+        $(this).parent().find('input').not(this).prop('checked', 'checked')
+      } else {
+        $(this).removeClass('clicked');
+        $(this).parent().find('input').not(this).prop('checked', '')
+      }
+      $(this).val(!$(this).val())
       $(this).parent().trigger('change')
     })
 
