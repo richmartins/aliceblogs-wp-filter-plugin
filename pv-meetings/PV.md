@@ -2,13 +2,6 @@
 
 ## PV meeting du 30 juillet 2020
 
-1. On travaille ensemble avec Hadrien
-1. Définition de la structure du filtre d'un point de vue technique / utilisateur
-1. Test jusqu'à mardi prochains (réponse sur le rechargement de la page ou pas)
-1. Possibilité de combiner les filtres à partir de la catégorie 3
-
-
-
 ### Notes
 
 |CAT 1|CAT 2|CAT 3|CAT 4|CAT 5|
@@ -73,11 +66,6 @@
             Drawing => CAT3 - catégorie
                 Studio 1 => CAT4 - role
                     Etudiant 1 => CAT5 - appartient au role Studio 1 - user
-
-
-### TO DO NEXT TIME
-
-1. /!\ Parler a Paulo et Jaime pour intégrer Hadrien /!\
 
 
 # REF.
