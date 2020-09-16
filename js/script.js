@@ -1,3 +1,4 @@
+// "use strict";
 jQuery(document).ready(function($){
     let view_options = 'card'
     let posts = ''
@@ -48,11 +49,13 @@ jQuery(document).ready(function($){
         html += '<h3>Aucun article n\'a été trouvé</h3>'
         $('#aliceblogs-nocard').html(html)
       } else {
-        for (index in posts) {
+        num =1;
+        for (const index in posts) {
           if (view_options == 'card') {
             html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
+            html += "<h1>"+num+"</h1>"
             html += '<div class="aliceblogs-card-container">'
-            html += '<img alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
+            html += '<img  alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
             html += '<h4 class="aliceblogs-card-text">'+ posts[index].title +'</h4>'
             html += '</div>'
             html += '</a>'
@@ -64,11 +67,13 @@ jQuery(document).ready(function($){
             html += '<div class="aliceblogs-list-footer"></div>'
             html += '</div>'
           }
+          num++;
         }
         
         if(view_options == 'card'){
           $('#aliceblogs-carddeck').html(html)
-          reorder_mansory_layout_carddeck();
+          // setTimeout(reorder_mansory_layout_carddeck(), 3000);
+          // reorder_mansory_layout_carddeck();
         } else if (view_options == 'list'){
           $('#aliceblogs-listdeck').html(html)
         }
@@ -118,7 +123,7 @@ jQuery(document).ready(function($){
       }).done(function(results) {
         let years = JSON.parse(results)
         
-        for (index in years) {
+        for (let index in years) {
           $('#aliceblogs-filter-year')
           .append($('<input class="checkbox-tools" type="radio" id="year-' + years[index].term_id + '" name="year" value="' + years[index].name + '">'))
           .append($('<label class="for-checkbox-tools" for="year-' + years[index].term_id + '" >' + years[index].name + '</label>'))
@@ -513,20 +518,24 @@ jQuery(document).ready(function($){
 
     // from : https://github.com/jessekorzan/css-masonry/blob/master/app.js
     function reorder_mansory_layout_carddeck() {
-         var _wrapper = $("#aliceblogs-carddeck"),
-          _cards = $(".aliceblogs-card"),
-          _cols = Number(_wrapper.css("column-count")),
-          _out = [],
-          _col = 0;
+      console.log('1');
+      var _wrapper = jQuery("#aliceblogs-carddeck"),
+        _cards = jQuery(".aliceblogs-card"),
+        _cols = Number(_wrapper.css("column-count")),
+        _out = [],
+        _col = 0;
 
-        while (_col < _cols) {
-          for (var i = 0; i < _cards.length; i += _cols) {
-            var _val = _cards[i + _col];
-            if (_val !== undefined)
-              _out.push(_val);
-          }
-          _col++;
+      while (_col < _cols) {
+        for (var i = 0; i < _cards.length; i += _cols) {
+          var _val = _cards[i + _col];
+          if (_val !== undefined)
+            _out.push(_val);
         }
-        _wrapper.html(_out);
+        _col++;
+      }
+      _wrapper.html(_out);
     };
  });
+
+
+    

@@ -99,6 +99,16 @@ body #login h1 a {
 .checkbox-tools:hover + label:hover{
     color: var(--black);
 }
+
+@media screen and (max-width: 800px) {
+    .checkbox-tools:hover + label:hover{
+        color: var(--gray);
+    } 
+    .checkbox-tools:checked + label:hover{
+        color: var(--black);
+    }
+}
+
 .checkbox-tools:checked + label{
     color: var(--black);
 }
@@ -241,8 +251,8 @@ body #login h1 a {
 }
 
 #aliceblogs-carddeck {
-  column-count: 4; 
-  column-gap: 8px; 
+    column-count: 4; 
+    column-gap: 8px; 
 }
 
 @media screen and (max-width: 1200px) {
@@ -258,10 +268,12 @@ body #login h1 a {
 
 a.aliceblogs-card {
     display: block;
+    position: relative;
     break-inside: avoid;
-    page-break-after: avoid;
+    page-break-after: avoid; 
     page-break-before: avoid;
     page-break-inside: avoid;
+    margin-bottom: 8px;
 }
 a.aliceblogs-card > .aliceblogs-card-container {
     display: inline-block;

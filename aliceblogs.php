@@ -62,6 +62,9 @@ class Aliceblogs {
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
         add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
         add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
+
+        
+        add_action('wp_before_admin_bar_render', [$this, 'admin_topbar_comments']);
     }
 
     /**
@@ -70,6 +73,7 @@ class Aliceblogs {
     public function load_scripts()
     {
         if (is_front_page()) {
+            wp_enqueue_script('isotope', 'https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js', array ( 'jquery' ));
             wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
@@ -128,6 +132,14 @@ class Aliceblogs {
      */
     public function wp_sender_name() {
         return 'AliceBlogs';
+    }
+
+    /**
+     * Remove comments icon in WP admin topbar
+     */
+    public function admin_topbar_comments() {
+        global $wp_admin_bar;
+        $wp_admin_bar->remove_menu('comments');
     }
 
     /**
@@ -913,16 +925,39 @@ class Aliceblogs {
         }
         $users = implode(",", $users);
 
+        //get ID of STICKY POSTS
+        $sticky = get_option( 'sticky_posts' );
+        rsort($sticky);
+
         // Create WP Query to filter posts authors & categories
         $args = [
             'posts_per_page' => -1,
             'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
-            'author' => $users
+            'author' => $users,
+            'post__not_in' => $sticky,
+            'ignore_sticky_posts' => 1
         ];
 
+        //QUERY to get all STICKY POSTS
+        $args_sticky = [
+            'posts_per_page' => -1,
+            'cat' => $categories,
+            'post_type' => 'post',
+            'post_status' => 'publish',
+            'author' => $users,
+            'post__in' => $sticky,
+            'ignore_sticky_posts' => 1,
+
+        ];
+
+        $sticky_posts = new WP_Query($args_sticky);
+
+        // QUERY to gel all posts but not the sickies ones
         $query = new WP_Query($args);
+
+        $posts_not_formatted = array_merge($sticky_posts->posts, $query->posts);
 
         // create second query if users are selected in filter
         // this query will be used for meta values (participants)
@@ -949,11 +984,13 @@ class Aliceblogs {
             $query2 = new WP_Query($args2);
             $query_results = array_merge($query->posts, $query2->posts);
         } else {
-            $query_results = $query->posts;
+            $query_results = $posts_not_formatted;
         }
 
+        $posts = [];
         foreach($query_results as $post){
             $data = [
+                'id'        => $post->ID,
                 'title'     => $post->post_title,
                 'url'       => $post->guid,
                 'thumbnail' => get_the_post_thumbnail_url((int)$post->ID) ? get_the_post_thumbnail_url((int)$post->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
@@ -962,12 +999,14 @@ class Aliceblogs {
                 'content'   => $post->post_content
             ];
             if (empty($medias)) {
-                $posts[$post->ID] = $data;
+                // $posts[$post->ID] = $data;
+                array_push($posts, $data);
             } else {
                 $post_cats = get_the_category((int)$post->ID);
                 foreach ($post_cats as $cat) {
                     if (in_array(strval($cat->term_id), $medias)) {
-                        $posts[$post->ID] = $data;
+                        // $posts[$post->ID] = $data;
+                        array_push($posts, $data);
                     }
                 }
             }
