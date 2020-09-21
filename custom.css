@@ -250,66 +250,82 @@ body #login h1 a {
     font-style:italic !important;
 }
 
+/**** CARD-DECK ****/
 #aliceblogs-carddeck {
-    column-count: 4; 
-    column-gap: 8px; 
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: center;
 }
 
-@media screen and (max-width: 1200px) {
-    #aliceblogs-carddeck {
-      column-count: 3; 
-    } 
-}
-@media screen and (max-width: 800px) {
-    #aliceblogs-carddeck {
-      column-count: 1; 
-    } 
+#aliceblogs-carddeck::after {
+    content: "";
+    flex: auto;
+    justify-content: space-between;
 }
 
-a.aliceblogs-card {
-    display: block;
-    position: relative;
-    break-inside: avoid;
-    page-break-after: avoid; 
-    page-break-before: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 8px;
-}
-a.aliceblogs-card > .aliceblogs-card-container {
-    display: inline-block;
+
+.aliceblogs-card {
+    display: flex;
+    justify-content: center;
+    padding: 0 .8em;
+    flex-direction: column;
+    height: 240px;
+    max-width: 400px;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }
 
 .aliceblogs-card-img {
-    width: 100%;
-    height: auto;
+    display: block;
+    height: 200px;
 }
 
+.aliceblogs-card-text {
+    display: block;
+    text-transform: lowercase;
+    font-size: 1em;
+    max-width: 100%;
+    visibility: hidden;
+    opacity: 0;
+    text-align: center;
+    margin-top: .2em;
+}
+
+.aliceblogs-card-text:first-letter {
+    text-transform: capitalize;
+}
+
+a.aliceblogs-card:hover > .aliceblogs-card-text {
+    visibility: visible;
+    opacity: 1;
+}
 
 .et_pb_menu_0_tb_header > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
     margin-bottom: .3em;
 }
 
-.visible{
+.visible {
     visibility: visible;
 }
-.aliceblogs-card-text {
-    text-transform: lowercase;
-    font-size: 1em;
-    visibility: hidden;
-    opacity: 0;
-    text-align: center;
-}
 
-.aliceblogs-card-text:first-letter{
-    text-transform: capitalize;
-}
+@media screen and (max-width: 800px) {
+    #aliceblogs-carddeck {
+        justify-content: space-evenly;
+    }
 
-a.aliceblogs-card:hover > div.aliceblogs-card-container > .aliceblogs-card-text {
-    visibility: visible;
-    opacity: 1;
-}
+    a.aliceblogs-card {
+        height: 200px!important;
+    }
 
-@media screen and (max-width: 800px){
+    img.aliceblogs-card-img {
+        display: block;
+        max-width: 300px!important;
+        height: 200px!important;
+    }
+
     .aliceblogs-card-text {
         visibility: visible;
         opacity: 1;
@@ -327,8 +343,6 @@ a.aliceblogs-card:hover > div.aliceblogs-card-container > .aliceblogs-card-text 
 
 .aliceblogs-view-options {
     display: flex; 
-    /*justify-content: space-between; */
-    /*width: 50px;*/
     height: 20px;
     color: var(--black);
 }

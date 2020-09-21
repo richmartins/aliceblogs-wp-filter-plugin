@@ -299,7 +299,8 @@ class Aliceblogs {
             'remove_users' => true,
             'create_users' => true,
             'list_users' => true,
-            'edit_users' => true
+            'edit_users' => true,
+            'promote_users' => true
         ];
 
         add_role('aliceblogs_teacher', 'Teacher', $default_capabilities);
@@ -989,6 +990,7 @@ class Aliceblogs {
 
         $posts = [];
         foreach($query_results as $post){
+
             $data = [
                 'id'        => $post->ID,
                 'title'     => $post->post_title,
@@ -999,18 +1001,19 @@ class Aliceblogs {
                 'content'   => $post->post_content
             ];
             if (empty($medias)) {
-                // $posts[$post->ID] = $data;
                 array_push($posts, $data);
             } else {
                 $post_cats = get_the_category((int)$post->ID);
                 foreach ($post_cats as $cat) {
                     if (in_array(strval($cat->term_id), $medias)) {
-                        // $posts[$post->ID] = $data;
                         array_push($posts, $data);
                     }
                 }
             }
         }
+
+        // remove magically duplicates in multi D arrays
+        $posts = array_unique($posts, SORT_REGULAR);
         echo json_encode($posts);
         die();
     }

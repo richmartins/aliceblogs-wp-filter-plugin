@@ -53,11 +53,8 @@ jQuery(document).ready(function($){
         for (const index in posts) {
           if (view_options == 'card') {
             html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
-            html += "<h1>"+num+"</h1>"
-            html += '<div class="aliceblogs-card-container">'
             html += '<img  alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
-            html += '<h4 class="aliceblogs-card-text">'+ posts[index].title +'</h4>'
-            html += '</div>'
+            html += '<p class="aliceblogs-card-text">'+ posts[index].title +'</p>'
             html += '</a>'
           } else if (view_options == 'list') {
             html += '<div class="animate__animated animate__fadeIn aliceblogs-list">'
