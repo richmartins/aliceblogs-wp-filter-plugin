@@ -233,7 +233,8 @@ class Aliceblogs {
         // display role
         // loop years
         foreach($sorted_roles as $year => $roles) {
-            echo '<h2>' . $year .'</h2>';
+            // format year like 20-21 and not 20_21
+            echo '<h2>' . str_replace("_", "-", $year) .'</h2>';
             // sort by degree
             ksort($roles);
             // loop degrees
@@ -356,6 +357,7 @@ class Aliceblogs {
         <h1>Modifier un utilisateur</h1>
         <form action="" method="post">
             <select name="user-edit">
+                <option selected="true" disabled="disabled">Veuillez séléctionner un étudiant...</option>
                 <?php 
                     foreach(get_users() as $user) {
                         if (user_can( $user->ID, 'manage_options' )) {
@@ -442,8 +444,9 @@ class Aliceblogs {
             ];
 
             $role_name = $_POST['role_name'];
-            $role_slug = strtolower(str_replace(' ', '_', $_POST['role_name']) . '-' . strtolower($_POST['role_degree']));
-            
+            $sanitized_role = sanitize_title($_POST['role_name']);
+            $role_slug = strtolower(str_replace('-', '_', $sanitized_role) . '-' . strtolower($_POST['role_degree']));
+
             $result = add_role($role_slug, $role_name, $default_capabilities);
             if ($result instanceof WP_Role) {
                 $_POST = [];
@@ -1148,6 +1151,7 @@ class Aliceblogs {
                 }
             }
 
+            ksort($roles);
             echo json_encode($roles);
         }
         die();
