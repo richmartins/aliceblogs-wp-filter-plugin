@@ -388,7 +388,9 @@ jQuery(document).ready(function($){
           }
 
           //adjust_div('#aliceblogs-filter-students-test', '.box-h');
-          adjust_student_div('#test', '.box-h');
+          if ($(window).width() > 700){
+            adjust_student_div('#test', '.box-h');
+          }
 
           // Add All button
           addAllBtn($('#aliceblogs-filter-students'));
