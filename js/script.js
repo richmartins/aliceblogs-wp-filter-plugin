@@ -52,6 +52,9 @@ jQuery(document).ready(function($){
         num =1;
         for (const index in posts) {
           if (view_options == 'card') {
+            if(posts[index].title.length > 25){
+              posts[index].title = posts[index].title.substring(0, 25) + "...";
+            }
             html += '<a class="aliceblogs-card animate__animated animate__fadeIn" href="' + posts[index].url + '">'
             html += '<img  alt="'+ posts[index].title +'" class="aliceblogs-card-img" src="'+ posts[index].thumbnail + '" />'
             html += '<p class="aliceblogs-card-text">'+ posts[index].title +'</p>'
@@ -377,13 +380,15 @@ jQuery(document).ready(function($){
           $('#aliceblogs-filter-students').empty()
           let students = JSON.parse(results)
           $('#aliceblogs-filter-students-title').show()
-          for (index in students) {
+          //console.log(students)
+          for (let index in students) {
               $('#aliceblogs-filter-students')
-              .append($('<input class="checkbox-tools" type="checkbox" id="student-' + index + '" name="students" value="' + students[index] + '">'))
-              .append($('<label class="for-checkbox-tools" for="student-' + index + '" >' + students[index] + '</label>'))
+                .append($('<input class="checkbox-tools" type="checkbox" id="student-' + students[index].id + '" name="students" value="' + students[index].id + '">'))
+              .append($('<label class="for-checkbox-tools" for="student-' + students[index].id + '" >' + students[index].name + '</label>'))
           }
 
-          adjust_div_width('#aliceblogs-filter-students')
+          //adjust_div('#aliceblogs-filter-students-test', '.box-h');
+          adjust_student_div('#test', '.box-h');
 
           // Add All button
           addAllBtn($('#aliceblogs-filter-students'));
@@ -498,6 +503,51 @@ jQuery(document).ready(function($){
       })
     }
 
+  /**
+  * @description:
+  * Function to adapt width and height of an flexbox's 
+  * item according to the item's content
+  *
+  * @param {col: html element selector} col is the column on the flex box to adjust
+  * @param {container: html element selector} container is the flex-box container
+  */
+
+
+    function adjust_div(col, container) {
+      var newWidth = $(this).width(newWidth)
+      $(col).each(function () {
+        var lastChild = $(this).children().last();
+        if (lastChild.length > 0) {
+          newWidth = lastChild.position().left - $(this).position().left + lastChild.outerWidth(true);
+          $(this).width(newWidth);
+          if (newWidth > $(container).width()) {
+            $(this).css('max-height', $(this).height() + 150)
+            $(this).height($(this).height() + 150);
+            adjust_div(col, container)
+          }
+        }
+
+      })
+    }
+
+
+    function adjust_student_div(div, container) {
+      let column_width = $(div).width()
+      let column_last_child_width = $(div).children("#aliceblogs-filter-students").children().last().position().left
+      let container_width = $(container).width()
+      
+      if (column_last_child_width > column_width) {
+       $(div).css('width', container_width) 
+      }
+        
+      while ($(div).children("#aliceblogs-filter-students").children().last().position().left > $(div).height()) {
+        console.log("went here")
+        let newheight = $(div).height() + 100
+        $('#test').css('max-height', newheight)
+      }
+    }
+
+
     /**
      * Check all column checkbox & trigger change event to refresh posts list
      */
@@ -532,7 +582,5 @@ jQuery(document).ready(function($){
       }
       _wrapper.html(_out);
     };
+
  });
-
-
-    

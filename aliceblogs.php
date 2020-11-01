@@ -357,7 +357,7 @@ class Aliceblogs {
         <h1>Modifier un utilisateur</h1>
         <form action="" method="post">
             <select name="user-edit">
-                <option selected="true" disabled="disabled">Veuillez séléctionner un étudiant...</option>
+                <option selected="true" disabled="disabled">Veuillez sélectionner un étudiant...</option>
                 <?php 
                     foreach(get_users() as $user) {
                         if (user_can( $user->ID, 'manage_options' )) {
@@ -699,6 +699,10 @@ class Aliceblogs {
     
     public function aliceblogs_debug() {
         echo "<h1>DEBUG MODE </h1><br><br>";
+
+        $ids = get_users(array('role' => '%studio clement%' ,'fields' => 'ID'));
+        var_dump($ids);
+
         /*
         $sticky = get_option( 'sticky_posts' );
         rsort($sticky);
@@ -1168,9 +1172,16 @@ class Aliceblogs {
             foreach($_POST['studios_names'] as $role) {
                 $users_belongs_to_role = get_users(['role' => $role]);
                 foreach($users_belongs_to_role as $user) {
-                    $users[$user->ID] = $user->display_name;
+                    //$users[$user->ID] = $user->display_name;
+                    array_push($users, [
+                        'id' => $user->ID,
+                        'name' => $user->last_name . ' ' . $user->first_name
+                    ]);
                 }
             }
+            // from : https://www.tutorialspoint.com/sort-multidimensional-array-by-multiple-keys-in-php
+            // sort multidimensional arrays by ASC username
+            array_multisort(array_column($users, 'name'), SORT_ASC, $users);
             echo json_encode($users);
         }
         die();
@@ -1203,11 +1214,14 @@ class Aliceblogs {
             INNER JOIN " . $wp_usermeta . " as wp_usermeta ON wp_users.ID = wp_usermeta.user_id
             WHERE (((wp_taxonmy.name LIKE '%%%s%%' ) 
             OR (wp_users.display_name LIKE '%%%s%%') 
+            OR (wp_usermeta.meta_value LIKE '%%%s%%')
             OR (wp_posts.post_title LIKE '%%%s%%') 
             OR (wp_usermeta.meta_value LIKE '%%%s%%')
             ) OR (wp_postmeta.meta_key = '_aliceblogs_participants' AND wp_postmeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
 
-            $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, $search, $search, $search]));
+            $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, preg_replace('/\s+/', '_', $search), $search, $search, $search]));
+
+            //var_dump($wpdb->prepare($sql, [$search, $search, $search, $search, $search, $search]));
 
             $results = [];
             foreach($query_results as $result) {
@@ -1232,17 +1246,24 @@ class Aliceblogs {
      * @return void
      */
     public function get_most_used_tags() {
+        /*
+        GET MOST USED TAGS
         $args = [
             'taxonomy' => 'post_tag',
             'orderby' => 'count',
             'order' => 'DESC',
             'number' => 2
         ];
-
-        $tags = [];
         foreach(get_terms($args) as $tag) {
-            $tags[$tag->slug] = '#' . $tag->name;
-        }
+            if ($tag->slug == 'care' || $tag->slug == 'wordreview') {
+                $tags[$tag->slug] = '#' . $tag->name;
+            }
+        }*/
+
+        $tags = [
+            'care' => '#care',
+            'wordreview' => '#wordreview'
+        ];
 
         echo json_encode($tags);
         die();
