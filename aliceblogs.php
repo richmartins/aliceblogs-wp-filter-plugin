@@ -700,9 +700,6 @@ class Aliceblogs {
     public function aliceblogs_debug() {
         echo "<h1>DEBUG MODE </h1><br><br>";
 
-        $ids = get_users(array('role' => '%studio clement%' ,'fields' => 'ID'));
-        var_dump($ids);
-
         /*
         $sticky = get_option( 'sticky_posts' );
         rsort($sticky);
@@ -939,7 +936,7 @@ class Aliceblogs {
 
         // Create WP Query to filter posts authors & categories
         $args = [
-            'posts_per_page' => -1,
+            'posts_per_page' => 200,
             'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
@@ -950,13 +947,13 @@ class Aliceblogs {
 
         //QUERY to get all STICKY POSTS
         $args_sticky = [
-            'posts_per_page' => -1,
+            'posts_per_page' => 200,
             'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
             'author' => $users,
             'post__in' => $sticky,
-            'ignore_sticky_posts' => 1,
+            'ignore_sticky_posts' => 1
 
         ];
 
@@ -1005,7 +1002,7 @@ class Aliceblogs {
                 'thumbnail' => get_the_post_thumbnail_url((int)$post->ID) ? get_the_post_thumbnail_url((int)$post->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
                 'date'      => get_the_date('d M Y', $post->ID),
                 'author'    => get_the_author_meta('display_name', $post->post_author),
-                'content'   => $post->post_content
+                'content'   => $post->post_content 
             ];
             if (empty($medias)) {
                 array_push($posts, $data);
@@ -1217,7 +1214,7 @@ class Aliceblogs {
             OR (wp_usermeta.meta_value LIKE '%%%s%%')
             OR (wp_posts.post_title LIKE '%%%s%%') 
             OR (wp_usermeta.meta_value LIKE '%%%s%%')
-            ) OR (wp_postmeta.meta_key = '_aliceblogs_participants' AND wp_postmeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish'";
+            ) OR (wp_postmeta.meta_key = '_aliceblogs_participants' AND wp_postmeta.meta_value LIKE '%%%s%%')) AND wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish' ORDER BY wp_posts.post_date DESC";
 
             $query_results = $wpdb->get_results($wpdb->prepare($sql, [$search, $search, preg_replace('/\s+/', '_', $search), $search, $search, $search]));
 
@@ -1225,7 +1222,8 @@ class Aliceblogs {
 
             $results = [];
             foreach($query_results as $result) {
-                $results[$result->ID] = [
+                $post = [
+                    'id'        => $result->ID,
                     'title'     => $result->post_title,
                     'url'       => $result->guid,
                     'thumbnail' => get_the_post_thumbnail_url((int)$result->ID) ? get_the_post_thumbnail_url((int)$result->ID) : plugin_dir_url( __FILE__ ) . 'images/missing_img.svg',
@@ -1233,6 +1231,7 @@ class Aliceblogs {
                     'author'    => $result->display_name,
                     'content'   => get_post_field('post_content', $result->ID)
                 ];
+                array_push($results, $post);
             }
 
             echo json_encode($results);
