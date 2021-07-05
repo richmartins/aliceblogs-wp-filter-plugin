@@ -1,0 +1,28 @@
+
+@font-face {
+    font-family: alice;
+    src: url(../fonts-alice/AkzidenzGroteskPro-Regular.otf);
+}
+
+html, body {
+    font-family: alice!important;
+}
+
+.aliceblogs-field-width {
+    width: 50% !important;
+}
+
+#aliceblogs-page-home {
+    display: flex;
+}
+
+#aliceblogs-page-home a {
+    margin-right: 1em;
+}
+
+
+#aliceblogs-newuser-role {
+    padding: 1em;
+    text-transform: uppercase;
+    max-height: 300px;
+}
