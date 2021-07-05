@@ -23,7 +23,8 @@ class Aliceblogs {
     const default_medias_category_id = 28;
 
     public function __construct(){
-        add_action('wp_enqueue_scripts', [$this, 'load_scripts']);
+        add_action('wp_enqueue_scripts', [$this, 'load_front_scripts']);
+        add_action('admin_enqueue_scripts', [$this, 'load_admin_scripts']); 
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_get_years', [$this, 'get_years']);
         add_action('wp_ajax_get_degrees', [$this, 'get_degrees']);
@@ -59,22 +60,30 @@ class Aliceblogs {
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
         add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
         add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
-        
+
         add_action('wp_before_admin_bar_render', [$this, 'admin_topbar_comments']);
     }
 
     /**
      * Load JS scripts only on home page
      */
-    public function load_scripts()
+    public function load_front_scripts()
     {
-        wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
+        wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/css/custom.css');
         if (is_front_page()) {
             wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
             wp_enqueue_script('isotope', 'https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js', array ( 'jquery' ));
             wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
         }
+    }
+
+    /**
+     * Load scripts only on backend pages
+     */
+    public function load_admin_scripts() 
+    {
+        wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/css/custom-admin.css');
     }
 
     /**
@@ -219,7 +228,8 @@ class Aliceblogs {
             if (in_array($role_slug, self::default_wp_roles)) {
                 continue;
             }
-            $sorted_roles[explode('-', $role_slug)[1]][explode('-', $role_slug)[2]][] = [
+            $role_explode_name = explode('-', $role_slug);
+            $sorted_roles[$role_explode_name[1] . "-" . $role_explode_name[2]][$role_explode_name[3]][] = [
                 'slug' => $role_slug,
                 'name' => $role['name']
             ];
@@ -232,7 +242,8 @@ class Aliceblogs {
         // loop years
         foreach($sorted_roles as $year => $roles) {
             // format year like 20-21 and not 20_21
-            echo '<h2>' . str_replace("_", "-", $year) .'</h2>';
+            echo '<h2>' . $year .'</h2>';
+
             // sort by degree
             ksort($roles);
             // loop degrees
@@ -500,7 +511,7 @@ class Aliceblogs {
         }
 
         //order array by year
-        ksort($years);
+        krsort($years);
 
         if ($valid){
             ?>
@@ -524,7 +535,7 @@ class Aliceblogs {
                 <tbody>
                     <tr class="form-field">
                         <th scope="row"><label for="role_name">Nom</label></th>
-                        <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= $_POST['role_name'] ?>" placeholder="ex: Studio ALICE"></td>
+                        <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= isset($_POST['role_name']) ? $_POST['role_name'] : '' ?>" placeholder="ex: Studio ALICE"></td>
                     </tr>
                     <tr>
                         <th scope="row">Classe</th>
@@ -632,26 +643,26 @@ class Aliceblogs {
                 <tbody>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="user_login">Identifiant</label></th>
-                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="<?= $_POST['user_login'] ?>" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
+                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="<?= isset($_POST['user_login']) ? $_POST['user_login'] : '' ?>" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
                     </tr>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="email">Adresse de messagerie</label></th>
-                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value="<?= $_POST['email'] ?>"></td>
+                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value="<?= isset($_POST['email']) ? $_POST['email'] : '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="first_name">Prénom </label></th>
-                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= $_POST['first_name'] ?>"></td>
+                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= isset($_POST['first_name']) ? $_POST['first_name'] : '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="last_name">Nom </label></th>
-                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= $_POST['last_name'] ?>"></td>
+                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= isset($_POST['last_name']) ? $_POST['last_name'] : '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label>Rôle utilisateur </label></th>
                         <td>
                             <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
                                 <?php
-                                self::render_roles_list('radio', $_POST['members_user_roles']);
+                                self::render_roles_list('radio', isset($_POST['members_user_roles']) ? $_POST['members_user_roles'] : '');
                                 ?>
                             </div>
                         </td>
