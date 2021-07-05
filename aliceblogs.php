@@ -23,9 +23,6 @@ class Aliceblogs {
     const default_medias_category_id = 28;
 
     public function __construct(){
-        wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
-        wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
-
         add_action('wp_enqueue_scripts', [$this, 'load_scripts']);
         add_action('wp_ajax_get_categories', [$this, 'get_categories']);
         add_action('wp_ajax_get_years', [$this, 'get_years']);
@@ -62,7 +59,6 @@ class Aliceblogs {
         add_filter('post_row_actions', [$this, 'disable_quick_edit'], 10, 2 );
         add_action('wp_ajax_get_medias2', [$this, 'get_medias_2']);
         add_action('wp_ajax_nopriv_get_medias2', [$this, 'get_medias_2']);
-
         
         add_action('wp_before_admin_bar_render', [$this, 'admin_topbar_comments']);
     }
@@ -72,7 +68,9 @@ class Aliceblogs {
      */
     public function load_scripts()
     {
+        wp_enqueue_style('custom', plugin_dir_url(__FILE__) . '/custom.css');
         if (is_front_page()) {
+            wp_enqueue_style('animate', 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css');
             wp_enqueue_script('isotope', 'https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js', array ( 'jquery' ));
             wp_enqueue_script('index', plugin_dir_url(__FILE__)  . '/js/script.js', array ( 'jquery' ));
             wp_localize_script('index', 'url', admin_url('admin-ajax.php'));
