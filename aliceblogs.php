@@ -599,7 +599,6 @@ class Aliceblogs {
                 // WP error
                 self::add_user_form(false, $result->get_error_message());
             } else {
-                var_dump($result);
                 // Create user
                 wp_mail($_POST['email'], 'Bienvenue sur Aliceblogs', $message, ['Content-Type: text/html; charset=UTF-8']);
                 $_POST = [];
@@ -752,6 +751,10 @@ class Aliceblogs {
         }
     }
 
+    /**
+     * Display a list of all users from the same studio in a metabox
+     * @param $post
+     */
     public function participants_metabox_content ($post) {
         //get users that are already participants
         $post_participants = get_post_meta($post->ID, '_aliceblogs_participants');
@@ -764,12 +767,13 @@ class Aliceblogs {
                 'order_by' => 'display_name'
             ];
 
-            //display a list of users
-            $nice_title = preg_replace('/[_-]/', ' ', $role);
-            $year = explode('-', $role)[1];
+            // convert studio name from : "studio_alice-20_21-y1" to : "Studio Alice"
+            $role_formatted = explode('-', $role);
+            $year = $role_formatted[1];
+            $nice_title = str_replace('_', ' ', $role_formatted[0]);
             ?>
 
-            <h3><?php echo ucwords($nice_title); ?></h3>
+            <h4 class="aliceblogs-metabox-title"><?php echo ucwords($nice_title); ?></h4>
 
             <?php
             foreach(get_users($args) as $user){
@@ -817,7 +821,7 @@ class Aliceblogs {
 
         ?>
         <div id="aliceblogs-categories-container-checkbox">
-            <h2 id="aliceblogs-metabox-title"><?= str_replace('_', '-', $year) . ' - ' . $degree ?></h2>
+            <h2 class="aliceblogs-metabox-title"><?= str_replace('_', '-', $year) . ' - ' . $degree ?></h2>
             <?php
             // Find child categories to degree-year cat
             foreach(get_categories($args) as $category) {

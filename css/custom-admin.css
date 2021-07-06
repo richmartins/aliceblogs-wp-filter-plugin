@@ -27,9 +27,15 @@ html, body {
     max-height: 300px;
 }
 
-#aliceblogs-metabox-title {
+.aliceblogs-metabox-title {
     font-weight: bold !important;
     font-size: 1.3em !important;
+    padding-left: 0 !important;
+}
+
+.aliceblogs-metabox-subtitle {
+    font-weight: bold !important;
+    font-size: 1.1em !important;
     padding-left: 0 !important;
 }
 

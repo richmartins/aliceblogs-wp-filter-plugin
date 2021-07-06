@@ -24,10 +24,11 @@ class Aliceblogs_Disable_User {
     /**
      * Add user profile page disable field
      */
-    public function disable_user_profile() {
-        $user = wp_get_current_user();
+    public function disable_user_profile($user) {
         $allowed_roles = ['administrator', 'aliceblogs_super_teacher'];
         if (array_intersect($user->roles, $allowed_roles)) {
+            $user_status_meta = get_user_meta($user->ID, 'aliceblogs_disable_user');
+            $user_status_meta = $user_status_meta[0] ?? 0;
             ?>
             <table class="form-table">
                 <tbody>
@@ -36,7 +37,7 @@ class Aliceblogs_Disable_User {
                             <label for="disable_user">Désactiver le compte</label>
                         </th>
                         <td>
-                            <input type="checkbox" id="aliceblogs_disable_user" name="aliceblogs_disable_user" value="1" <?php checked(1, get_the_author_meta('aliceblogs_disable_user', $user->ID)); ?> />
+                            <input type="checkbox" id="aliceblogs_disable_user" name="aliceblogs_disable_user" value="1" <?php checked(1, $user_status_meta); ?> />
                             <span class="description">Si la case est cochée, l'utilisateur ne pourra plus se connecter</span>
                         </td>
                     </tr>
