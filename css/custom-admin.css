@@ -26,3 +26,13 @@ html, body {
     text-transform: uppercase;
     max-height: 300px;
 }
+
+#aliceblogs-metabox-title {
+    font-weight: bold !important;
+    font-size: 1.3em !important;
+    padding-left: 0 !important;
+}
+
+.aliceblogs-metabox-item {
+    font-size: 14px;
+}

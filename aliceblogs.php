@@ -229,7 +229,7 @@ class Aliceblogs {
                 continue;
             }
             $role_explode_name = explode('-', $role_slug);
-            $sorted_roles[$role_explode_name[1] . "-" . $role_explode_name[2]][$role_explode_name[3]][] = [
+            $sorted_roles[str_replace('_', '-', $role_explode_name[1])][$role_explode_name[2]][] = [
                 'slug' => $role_slug,
                 'name' => $role['name']
             ];
@@ -422,7 +422,6 @@ class Aliceblogs {
                             <span class="description">Si la case est cochée, l'utilisateur ne pourra plus se connecter</span>
                         </td>
                     </tr>
-                </tr>
                 </tbody>
             </table>
             <p class="submit"><input type="submit" class="button button-primary" value="Modifier"></p>
@@ -452,11 +451,15 @@ class Aliceblogs {
                 'edit_published_posts' => true
             ];
 
-            $role_name = $_POST['role_name'];
-            $sanitized_role = sanitize_title($_POST['role_name']);
-            $role_slug = strtolower(str_replace('-', '_', $sanitized_role) . '-' . strtolower($_POST['role_degree']));
+            // Input :
+            // role_name = Studio Alice
+            // role degree = y1-21_22
+            // Output : studio_alice-21_22-y1
 
-            $result = add_role($role_slug, $role_name, $default_capabilities);
+            $role_degree_parts = explode('-', $_POST['role_degree']);
+            $role_slug = strtolower(str_replace(' ', '_', $_POST['role_name']) . '-' . $role_degree_parts[1] . '-' . $role_degree_parts[0]);
+
+            $result = add_role($role_slug, $_POST['role_name'], $default_capabilities);
             if ($result instanceof WP_Role) {
                 $_POST = [];
                 self::add_studio_form(true);
@@ -489,7 +492,6 @@ class Aliceblogs {
         
         $terms = get_terms($taxonomies, $args);
         $years = [];
-        $degree = [];
 
         foreach($terms as $term) {
             if($term->parent == 0){
@@ -535,7 +537,7 @@ class Aliceblogs {
                 <tbody>
                     <tr class="form-field">
                         <th scope="row"><label for="role_name">Nom</label></th>
-                        <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= isset($_POST['role_name']) ? $_POST['role_name'] : '' ?>" placeholder="ex: Studio ALICE"></td>
+                        <td><input name="role_name" class="aliceblogs-field-width" type="text" id="role_name" value="<?= $_POST['role_name'] ?? '' ?>" placeholder="ex: Studio ALICE"></td>
                     </tr>
                     <tr>
                         <th scope="row">Classe</th>
@@ -547,7 +549,7 @@ class Aliceblogs {
                                         foreach($degrees as $id_degree => $degree) {
                                             if($degree['parent'] == $id_year) {
                                                 ?>
-                                                    <input id="<?= $degree['slug'] ?>" type="radio" name="role_degree" value="<?= $year['slug'] . '-' .$degree['name'] ?>" />
+                                                    <input id="<?= $degree['slug'] ?>" type="radio" name="role_degree" value="<?= $degree['slug'] ?>" />
                                                     <label for="<?= $degree['slug']?>"><?= $degree['name'] ?></label><br />
                                                 <?php
                                             }
@@ -613,11 +615,6 @@ class Aliceblogs {
      * Custom add user form
      */
     public function add_user_form($valid = null, $message = '') {
-        global $wp_roles;
-        $roles = $wp_roles->roles;
-        $roles_ordered = [];
-        $years = [];
-
         // Show status message
         if ($valid){
             ?>
@@ -643,26 +640,26 @@ class Aliceblogs {
                 <tbody>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="user_login">Identifiant</label></th>
-                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="<?= isset($_POST['user_login']) ? $_POST['user_login'] : '' ?>" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
+                        <td><input name="user_login" class="aliceblogs-field-width" type="text" id="user_login" value="<?= $_POST['user_login'] ?? '' ?>" aria-required="true" autocapitalize="none" autocorrect="off" maxlength="60"></td>
                     </tr>
                     <tr class="form-field form-required">
                         <th scope="row"><label for="email">Adresse de messagerie</label></th>
-                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value="<?= isset($_POST['email']) ? $_POST['email'] : '' ?>"></td>
+                        <td><input name="email" class="aliceblogs-field-width" type="email" id="email" value="<?= $_POST['email'] ?? '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="first_name">Prénom </label></th>
-                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= isset($_POST['first_name']) ? $_POST['first_name'] : '' ?>"></td>
+                        <td><input name="first_name" class="aliceblogs-field-width" type="text" id="first_name" value="<?= $_POST['first_name'] ?? '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label for="last_name">Nom </label></th>
-                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= isset($_POST['last_name']) ? $_POST['last_name'] : '' ?>"></td>
+                        <td><input name="last_name" class="aliceblogs-field-width" type="text" id="last_name" value="<?= $_POST['last_name'] ?? '' ?>"></td>
                     </tr>
                     <tr class="form-field">
                         <th scope="row"><label>Rôle utilisateur </label></th>
                         <td>
                             <div id="aliceblogs-newuser-role" class="wp-tab-panel aliceblogs-field-width">
                                 <?php
-                                self::render_roles_list('radio', isset($_POST['members_user_roles']) ? $_POST['members_user_roles'] : '');
+                                self::render_roles_list('radio', $_POST['members_user_roles'] ?? '');
                                 ?>
                             </div>
                         </td>
@@ -726,29 +723,32 @@ class Aliceblogs {
     public function save_metabox($post_id) {
         $user = wp_get_current_user();
 
-        if (!in_array($user->roles[0], self::default_wp_roles) && isset($_POST['aliceblogs-categories'])) {
-            
-            $medias = [];
-            foreach($_POST['aliceblogs-categories'] as $term) {
-                $media = get_category_by_slug($term);
-                array_push($medias, $media->term_id);
-                $medias['parent'] = $media->parent;
+        if (!in_array($user->roles[0], self::default_wp_roles)) {
+
+            if (isset($_POST['aliceblogs-categories'])) {
+                $medias = [];
+                foreach($_POST['aliceblogs-categories'] as $term) {
+                    $media = get_category_by_slug($term);
+                    array_push($medias, $media->term_id);
+                    $medias['parent'] = $media->parent;
+                }
+
+                wp_set_post_categories($post_id, $medias);
             }
 
-            wp_set_post_categories($post_id, $medias);
-    
-            $participants = [];
-            foreach($_POST['aliceblogs-participants'] as $user_id){
-                $user = get_user_by('ID', $user_id);
-                $participants[$user_id] = [
-                    'name' => $user->user_nicename,
-                    'display_name' => $user->display_name
-                ];
+            if (isset($_POST['aliceblogs-participants'])) {
+                $participants = [];
+                foreach($_POST['aliceblogs-participants'] as $user_id){
+                    $user = get_user_by('ID', $user_id);
+                    $participants[$user_id] = [
+                        'name' => $user->user_nicename,
+                        'display_name' => $user->display_name
+                    ];
+                }
+                //save the participants
+                //DANGER FUNCTION
+                update_post_meta($post_id, '_aliceblogs_participants', serialize($participants));
             }
-    
-            //save the participants
-            //DANGER FUNCTION
-            update_post_meta($post_id, '_aliceblogs_participants', serialize($participants));
         }
     }
 
@@ -810,7 +810,7 @@ class Aliceblogs {
 
         ?>
         <div id="aliceblogs-categories-container-checkbox">
-            <h2 id="aliceblogs-metabox-title"><?= $year . ' - ' . $degree ?></h2>
+            <h2 id="aliceblogs-metabox-title"><?= str_replace('_', '-', $year) . ' - ' . $degree ?></h2>
             <?php
             // Find child categories to degree-year cat
             foreach(get_categories($args) as $category) {
@@ -825,8 +825,6 @@ class Aliceblogs {
             foreach($post_categories as $cat_term) {
                 $post_categories_slugs[$cat_term->term_id] = $cat_term->slug;
             }
-
-            //var_dump($post_categories_slugs);
 
             foreach($sorted_categories as $key => $element) {
                 echo "<h4>" . $key . "</h4>";
