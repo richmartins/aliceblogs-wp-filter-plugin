@@ -754,7 +754,8 @@ class Aliceblogs {
 
     public function participants_metabox_content ($post) {
         //get users that are already participants
-        $users_already_participants = unserialize(get_post_meta($post->ID, '_aliceblogs_participants')[0]);
+        $post_participants = get_post_meta($post->ID, '_aliceblogs_participants');
+
         //get list of users of the same studio
         foreach(get_userdata($post->post_author)->roles as $role) {
             $args = [
@@ -767,7 +768,9 @@ class Aliceblogs {
             $nice_title = preg_replace('/[_-]/', ' ', $role);
             $year = explode('-', $role)[1];
             ?>
-                <h3><?php echo ucwords($nice_title); ?></h3>
+
+            <h3><?php echo ucwords($nice_title); ?></h3>
+
             <?php
             foreach(get_users($args) as $user){
       
@@ -776,8 +779,12 @@ class Aliceblogs {
                 }
 
                 $checked = '';
-                if(!empty($users_already_participants) && in_array($user->ID, array_keys($users_already_participants))){
-                    $checked = 'checked';
+
+                if($post_participants){
+                    $users_already_participants = unserialize(get_post_meta($post->ID, '_aliceblogs_participants')[0]);
+                    if(!empty($users_already_participants) && in_array($user->ID, array_keys($users_already_participants))) {
+                        $checked = 'checked';
+                    }
                 }
                 ?>
                     <div>
@@ -851,15 +858,15 @@ class Aliceblogs {
 
     /**
      * Adds post tags below post content
+     * Only on front post pages
      */
     public function single_post_metadata($content) {
 
-        if (get_post_type() != 'post') {
+        if (get_post_type() != 'post' || is_admin()) {
             return $content;
         }
 
         $author = get_the_author();
-        $user = get_userdata( get_the_author_meta('ID') );
         $date = get_the_date('j/m/Y');
         $categories = get_the_category();
         $posttags = get_the_tags();
@@ -869,8 +876,6 @@ class Aliceblogs {
             foreach($participants_meta as $participant) {
                 $participants_badges .= ', <a href="/?q=' . $participant['display_name'] . '" >' . $participant['display_name'] . '</a>';
             }
-        }else {
-            $participants = '';
         }
 
         // getting studios (role of user) by author ID
@@ -905,7 +910,7 @@ class Aliceblogs {
         . ' | ' . $date 
         . ' | ' . $cats_badges 
         . ' | ' . '<a href="/?q=' . $role_name . '" >' . $role_name . '</a>' 
-        . ' '. $tags . '<br><br>' . $content;
+        . ' '. ($tags ?? '') . '<br><br>' . $content;
 
         return $content;
     }
