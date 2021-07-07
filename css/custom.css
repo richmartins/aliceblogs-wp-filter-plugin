@@ -356,7 +356,7 @@ a.aliceblogs-card:hover > .aliceblogs-card-text {
 
 #aliceblogs-view-mosaic {
     width: 20px;
-    background-image: url('images/card_layout.svg');
+    background-image: url('../images/card_layout.svg');
     background-repeat: no-repeat;
     background-size: contain;
     margin-right: 10px;
@@ -364,7 +364,7 @@ a.aliceblogs-card:hover > .aliceblogs-card-text {
 
 #aliceblogs-view-list {
     width: 20px;
-    background-image: url('images/list_layout.svg');
+    background-image: url('../images/list_layout.svg');
     background-repeat: no-repeat;
     background-size: contain;
 }

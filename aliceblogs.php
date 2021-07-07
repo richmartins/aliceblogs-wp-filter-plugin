@@ -373,8 +373,8 @@ class Aliceblogs {
                             continue;
                         }
                         
-                        $role_slug = get_userdata($user->ID)->roles[0];
-                        if (in_array($role_slug, self::default_wp_roles)) {
+                        $role_slug = get_userdata($user->ID)->roles[0] ?? false;
+                        if ($role_slug && in_array($role_slug, self::default_wp_roles)) {
                             continue;
                         }
                         
@@ -929,11 +929,6 @@ class Aliceblogs {
         $medias = $_POST['medias'];
         $users = $_POST['students'];
 
-        // Merge all categories & medias in a single string
-        if (!empty($medias)) {
-            $categories = array_merge($categories, $medias);
-        }
-
         // Get all users from selected studios
         if(is_array($_POST['roles']) && empty($users)){
             $users = [];
@@ -944,7 +939,7 @@ class Aliceblogs {
                 }
             }
         }
-        $users = implode(",", $users);
+        $users ?? $users = implode(",", $users);
 
         //get ID of STICKY POSTS
         $sticky = get_option( 'sticky_posts' );
@@ -953,10 +948,9 @@ class Aliceblogs {
         // Create WP Query to filter posts authors & categories
         $args = [
             'posts_per_page' => 200,
-            'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
-            'author' => $users,
+            'author__in' => $users,
             'post__not_in' => $sticky,
             'ignore_sticky_posts' => 1
         ];
@@ -964,14 +958,23 @@ class Aliceblogs {
         //QUERY to get all STICKY POSTS
         $args_sticky = [
             'posts_per_page' => 200,
-            'cat' => $categories,
             'post_type' => 'post',
             'post_status' => 'publish',
-            'author' => $users,
+            'author__in' => $users,
             'post__in' => $sticky,
             'ignore_sticky_posts' => 1
 
         ];
+
+        // check if only a primary category (poles) is selected
+        // or if subcategories (poles + contents) are selected
+        if (!empty($medias)) {
+            $args_sticky['category__in'] = $medias;
+            $args['category__in'] = $medias;
+        } else {
+            $args_sticky['cat'] = $categories;
+            $args['cat'] = $categories;
+        }
 
         $sticky_posts = new WP_Query($args_sticky);
 

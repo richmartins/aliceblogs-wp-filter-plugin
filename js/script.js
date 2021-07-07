@@ -81,6 +81,22 @@ jQuery(document).ready(function($){
     }
 
     /**
+     * Disable loader
+     */
+    function loader_off() {
+        $('#container-loader').empty()
+    }
+
+    /**
+     * Enable loader
+     */
+    function loader_on() {
+        $('#container-loader').html('<div class="loader"></div>')
+        $('#aliceblogs-carddeck').empty()
+        $('#aliceblogs-nocard').empty()
+    }
+
+    /**
      * Toggle loader on/off
      */
     function toggle_loader() {
@@ -105,11 +121,11 @@ jQuery(document).ready(function($){
                 'students': students
             },
             beforeSend: function() {
-              toggle_loader()
+              loader_on()
             }
       }).done(function (results) {
           posts = JSON.parse(results)
-          toggle_loader()
+          loader_off()
           render_posts()  
       });
     }
@@ -140,7 +156,7 @@ jQuery(document).ready(function($){
           current_school_year = current_year + '-' + next_year
         } else {
           // 2nd semester of the school year : last year - current year
-          let last_year = (new Date().getFullYear()+1).toString().substr(-1)
+          let last_year = (new Date().getFullYear()-1).toString().substr(-2)
           current_school_year = last_year + '-' + current_year
         }
         selected_year_exist = years.find(year => year.name == current_school_year)
@@ -446,11 +462,11 @@ jQuery(document).ready(function($){
           'search_text': $('#aliceblogs-searchbar').val()
         },
         beforeSend: function() {
-          toggle_loader()
+          loader_on()
         }
       }).done(function(results) {
         posts = JSON.parse(results)
-          toggle_loader()
+          loader_off()
           render_posts()
       });
     }
